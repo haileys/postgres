@@ -2801,7 +2801,7 @@ initialize_data_directory(void)
 
 	setup_collation(cmdfd);
 
-	setup_run_file(cmdfd, dictionary_file);
+	// setup_run_file(cmdfd, dictionary_file);
 
 	setup_privileges(cmdfd);
 
