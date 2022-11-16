@@ -2807,7 +2807,7 @@ initialize_data_directory(void)
 
 	setup_schema(cmdfd);
 
-	load_plpgsql(cmdfd);
+	// load_plpgsql(cmdfd);
 
 	vacuum_db(cmdfd);
 
