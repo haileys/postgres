@@ -34,7 +34,7 @@
 int
 getpeereid(int sock, uid_t *uid, gid_t *gid)
 {
-#if defined(SO_PEERCRED)
+#if 0 && defined(SO_PEERCRED)
 	/* Linux: use getsockopt(SO_PEERCRED) */
 	struct ucred peercred;
 	socklen_t	so_len = sizeof(peercred);
@@ -45,7 +45,7 @@ getpeereid(int sock, uid_t *uid, gid_t *gid)
 	*uid = peercred.uid;
 	*gid = peercred.gid;
 	return 0;
-#elif defined(LOCAL_PEERCRED)
+#elif 0 && defined(LOCAL_PEERCRED)
 	/* Debian with FreeBSD kernel: use getsockopt(LOCAL_PEERCRED) */
 	struct xucred peercred;
 	socklen_t	so_len = sizeof(peercred);
@@ -57,7 +57,7 @@ getpeereid(int sock, uid_t *uid, gid_t *gid)
 	*uid = peercred.cr_uid;
 	*gid = peercred.cr_gid;
 	return 0;
-#elif defined(HAVE_GETPEERUCRED)
+#elif 0 && defined(HAVE_GETPEERUCRED)
 	/* Solaris: use getpeerucred() */
 	ucred_t    *ucred;
 
