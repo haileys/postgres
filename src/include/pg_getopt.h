@@ -18,14 +18,6 @@
 #ifndef PG_GETOPT_H
 #define PG_GETOPT_H
 
-/* POSIX says getopt() is provided by unistd.h */
-#include <unistd.h>
-
-/* rely on the system's getopt.h if present */
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
-
 /*
  * If we have <getopt.h>, assume it declares these variables, else do that
  * ourselves.  (We used to just declare them unconditionally, but Cygwin
@@ -33,10 +25,10 @@
  */
 #ifndef HAVE_GETOPT_H
 
-extern PGDLLIMPORT char *optarg;
-extern PGDLLIMPORT int optind;
-extern PGDLLIMPORT int opterr;
-extern PGDLLIMPORT int optopt;
+// extern PGDLLIMPORT char *optarg;
+// extern PGDLLIMPORT int optind;
+// extern PGDLLIMPORT int opterr;
+// extern PGDLLIMPORT int optopt;
 
 #endif							/* HAVE_GETOPT_H */
 
@@ -45,12 +37,12 @@ extern PGDLLIMPORT int optopt;
  * Cygwin, however, doesn't like this either.
  */
 #if defined(HAVE_INT_OPTRESET) && !defined(__CYGWIN__)
-extern PGDLLIMPORT int optreset;
+// extern PGDLLIMPORT int optreset;
 #endif
 
 /* Provide getopt() declaration if the platform doesn't have it */
 #ifndef HAVE_GETOPT
-extern int	getopt(int nargc, char *const *nargv, const char *ostr);
+// extern int	getopt(int nargc, char *const *nargv, const char *ostr);
 #endif
 
 #endif							/* PG_GETOPT_H */
