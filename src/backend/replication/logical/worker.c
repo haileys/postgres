@@ -205,7 +205,13 @@ typedef struct FlushPosition
 	XLogRecPtr	remote_end;
 } FlushPosition;
 
-static dlist_head lsn_mapping = DLIST_STATIC_INIT(lsn_mapping);
+static dlist_head lsn_mapping;
+
+void
+pglite_tls_init_replication_logical_worker(void)
+{
+	lsn_mapping = (dlist_head)DLIST_STATIC_INIT(lsn_mapping);
+}
 
 typedef struct ApplyExecutionData
 {

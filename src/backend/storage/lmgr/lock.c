@@ -123,36 +123,50 @@ static const char *const lock_mode_names[] =
 static bool Dummy_trace = false;
 #endif
 
-static const LockMethodData default_lockmethod = {
+static LockMethodData default_lockmethod = {
 	MaxLockMode,
 	LockConflicts,
 	lock_mode_names,
-#ifdef LOCK_DEBUG
-	&Trace_locks
-#else
-	&Dummy_trace
-#endif
+	0
 };
 
-static const LockMethodData user_lockmethod = {
+static LockMethodData user_lockmethod = {
 	MaxLockMode,
 	LockConflicts,
 	lock_mode_names,
-#ifdef LOCK_DEBUG
-	&Trace_userlocks
-#else
-	&Dummy_trace
-#endif
+	0
 };
 
 /*
  * map from lock method id to the lock table data structures
  */
-static const LockMethod LockMethods[] = {
+static LockMethod LockMethods[] = {
 	NULL,
-	&default_lockmethod,
-	&user_lockmethod
+	NULL,
+	NULL
 };
+
+void
+pglite_tls_init_storage_lmgr_lock(void)
+{
+	default_lockmethod.trace_flag =
+#ifdef LOCK_DEBUG
+		&Trace_locks;
+#else
+		&Dummy_trace;
+#endif
+
+	user_lockmethod.trace_flag =
+#ifdef LOCK_DEBUG
+		&Trace_userlocks;
+#else
+		&Dummy_trace;
+#endif
+
+	LockMethods[0] = NULL;
+	LockMethods[1] = &default_lockmethod;
+	LockMethods[2] = &user_lockmethod;
+}
 
 
 /* Record that's written to 2PC state file when a lock is persisted */

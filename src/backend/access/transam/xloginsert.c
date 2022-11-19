@@ -97,8 +97,14 @@ static int	max_registered_block_id = 0;	/* highest block_id + 1 currently
  * with XLogRegisterData(...).
  */
 static XLogRecData *mainrdata_head;
-static XLogRecData *mainrdata_last = (XLogRecData *) &mainrdata_head;
+static XLogRecData *mainrdata_last;
 static uint32 mainrdata_len;	/* total # of bytes in chain */
+
+void
+pglite_tls_init_access_transam_xloginsert(void)
+{
+	mainrdata_last = (XLogRecData *) &mainrdata_head;
+}
 
 /* flags for the in-progress insertion */
 static uint8 curinsert_flags = 0;

@@ -293,8 +293,14 @@ static AutoVacuumShmemStruct *AutoVacuumShmem;
  * the database list (of avl_dbase elements) in the launcher, and the context
  * that contains it
  */
-static dlist_head DatabaseList = DLIST_STATIC_INIT(DatabaseList);
+static dlist_head DatabaseList;
 static MemoryContext DatabaseListCxt = NULL;
+
+void
+pglite_tls_init_postmaster_autovacuum(void)
+{
+	DatabaseList = (dlist_head)DLIST_STATIC_INIT(DatabaseList);
+}
 
 /* Pointer to my own WorkerInfo, valid on each worker */
 static WorkerInfo MyWorkerInfo = NULL;

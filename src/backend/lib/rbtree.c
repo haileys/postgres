@@ -60,11 +60,13 @@ struct RBTree
  */
 #define RBTNIL (&sentinel)
 
-static RBTNode sentinel =
-{
-	RBTBLACK, RBTNIL, RBTNIL, NULL
-};
+static RBTNode sentinel;
 
+void
+pglite_tls_init_lib_rbtree(void)
+{
+	sentinel = (RBTNode){ RBTBLACK, RBTNIL, RBTNIL, NULL };
+}
 
 /*
  * rbt_create: create an empty RBTree

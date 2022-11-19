@@ -89,12 +89,19 @@
  * We use a dlist instead of separate List cells so that we can guarantee
  * to save a CachedPlanSource without error.
  */
-static dlist_head saved_plan_list = DLIST_STATIC_INIT(saved_plan_list);
+static dlist_head saved_plan_list;
 
 /*
  * This is the head of the backend's list of CachedExpressions.
  */
-static dlist_head cached_expression_list = DLIST_STATIC_INIT(cached_expression_list);
+static dlist_head cached_expression_list;
+
+void
+pglite_tls_init_utils_cache_plancache(void)
+{
+	saved_plan_list = (dlist_head)DLIST_STATIC_INIT(saved_plan_list);
+	cached_expression_list = (dlist_head)DLIST_STATIC_INIT(cached_expression_list);
+}
 
 static void ReleaseGenericPlan(CachedPlanSource *plansource);
 static List *RevalidateCachedQuery(CachedPlanSource *plansource,

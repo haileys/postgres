@@ -318,10 +318,16 @@ typedef struct mXactCacheEnt
 	MultiXactMember members[FLEXIBLE_ARRAY_MEMBER];
 } mXactCacheEnt;
 
-#define MAX_CACHE_ENTRIES	256
-static dlist_head MXactCache = DLIST_STATIC_INIT(MXactCache);
-static int	MXactCacheMembers = 0;
+#define MAX_CACHE_ENTRIES   256
+static dlist_head MXactCache = {};
+static int MXactCacheMembers = 0;
 static MemoryContext MXactContext = NULL;
+
+void
+pglite_tls_init_access_transam_multixacct(void)
+{
+	MXactCache = (dlist_head)DLIST_STATIC_INIT(MXactCache);
+}
 
 #ifdef MULTIXACT_DEBUG
 #define debug_elog2(a,b) elog(a,b)

@@ -121,7 +121,13 @@ bool		InitializingParallelWorker = false;
 static FixedParallelState *MyFixedParallelState;
 
 /* List of active parallel contexts. */
-static dlist_head pcxt_list = DLIST_STATIC_INIT(pcxt_list);
+static dlist_head pcxt_list = {};
+
+void
+pglite_tls_init_access_transam_parallel(void)
+{
+	pcxt_list = (dlist_head)DLIST_STATIC_INIT(pcxt_list);
+}
 
 /* Backend-local copy of data from FixedParallelState. */
 static pid_t ParallelLeaderPid;

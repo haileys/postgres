@@ -35,8 +35,13 @@ static const char *pgstat_get_wait_io(WaitEventIO w);
 
 
 static uint32 local_my_wait_event_info;
-uint32	   *my_wait_event_info = &local_my_wait_event_info;
+uint32	   *my_wait_event_info;
 
+void
+pglite_tls_init_utils_activity_wait_event(void)
+{
+	my_wait_event_info = &local_my_wait_event_info;
+}
 
 /*
  * Configure wait event reporting to report wait events to *wait_event_info.

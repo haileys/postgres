@@ -1010,7 +1010,24 @@ static const unit_conversion time_unit_conversion_table[] =
 
 /******** option records follow ********/
 
-static struct config_bool ConfigureNamesBool[] =
+static struct config_bool ConfigureNamesBool[102] = {};
+static struct config_int ConfigureNamesInt[127] = {};
+static struct config_real ConfigureNamesReal[26] = {};
+static struct config_string ConfigureNamesString[71] = {};
+static struct config_enum ConfigureNamesEnum[37] = {};
+
+#define INIT_GUC_NAMES(name) \
+	{ \
+		int _static_assert_##name##too_small[sizeof(init_##name) > sizeof(name) ? -1 : 0]; \
+		int _static_assert_##name##too_large[sizeof(init_##name) < sizeof(name) ? -1 : 0]; \
+	} \
+	memcpy(name, init_##name, sizeof(name));
+
+void
+pglite_tls_init_utils_misc_guc(void)
+{
+
+struct config_bool init_ConfigureNamesBool[] =
 {
 	{
 		{"enable_seqscan", PGC_USERSET, QUERY_TUNING_METHOD,
@@ -2179,7 +2196,7 @@ static struct config_bool ConfigureNamesBool[] =
 };
 
 
-static struct config_int ConfigureNamesInt[] =
+struct config_int init_ConfigureNamesInt[] =
 {
 	{
 		{"archive_timeout", PGC_SIGHUP, WAL_ARCHIVING,
@@ -3659,7 +3676,7 @@ static struct config_int ConfigureNamesInt[] =
 };
 
 
-static struct config_real ConfigureNamesReal[] =
+struct config_real init_ConfigureNamesReal[] =
 {
 	{
 		{"seq_page_cost", PGC_USERSET, QUERY_TUNING_COST,
@@ -3940,7 +3957,7 @@ static struct config_real ConfigureNamesReal[] =
 };
 
 
-static struct config_string ConfigureNamesString[] =
+struct config_string init_ConfigureNamesString[] =
 {
 	{
 		{"archive_command", PGC_SIGHUP, WAL_ARCHIVING,
@@ -4718,7 +4735,7 @@ static struct config_string ConfigureNamesString[] =
 };
 
 
-static struct config_enum ConfigureNamesEnum[] =
+struct config_enum init_ConfigureNamesEnum[] =
 {
 	{
 		{"backslash_quote", PGC_USERSET, COMPAT_OPTIONS_PREVIOUS,
@@ -5114,6 +5131,19 @@ static struct config_enum ConfigureNamesEnum[] =
 		{NULL, 0, 0, NULL, NULL}, NULL, 0, NULL, NULL, NULL, NULL
 	}
 };
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
+INIT_GUC_NAMES(ConfigureNamesBool);
+INIT_GUC_NAMES(ConfigureNamesInt);
+INIT_GUC_NAMES(ConfigureNamesReal);
+INIT_GUC_NAMES(ConfigureNamesString);
+INIT_GUC_NAMES(ConfigureNamesEnum);
+
+#pragma GCC diagnostic pop
+
+}
 
 /******** end of options list ********/
 

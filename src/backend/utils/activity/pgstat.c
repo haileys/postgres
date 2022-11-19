@@ -217,8 +217,13 @@ static MemoryContext pgStatPendingContext = NULL;
  * Newly pending entries should only ever be added to the end of the list,
  * otherwise pgstat_flush_pending_entries() might not see them immediately.
  */
-static dlist_head pgStatPending = DLIST_STATIC_INIT(pgStatPending);
+static dlist_head pgStatPending;
 
+void
+pglite_tls_init_utils_activity_pgstat(void)
+{
+	pgStatPending = (dlist_head)DLIST_STATIC_INIT(pgStatPending);
+}
 
 /*
  * Force the next stats flush to happen regardless of

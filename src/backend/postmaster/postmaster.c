@@ -188,7 +188,13 @@ typedef struct bkend
 	dlist_node	elem;			/* list link in BackendList */
 } Backend;
 
-static dlist_head BackendList = DLIST_STATIC_INIT(BackendList);
+static dlist_head BackendList;
+
+void
+pglite_tls_init_postmaster_postmaster(void)
+{
+	BackendList = (dlist_head)DLIST_STATIC_INIT(BackendList);
+}
 
 #ifdef EXEC_BACKEND
 static Backend *ShmemBackendArray;

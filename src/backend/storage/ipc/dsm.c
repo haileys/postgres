@@ -126,7 +126,13 @@ static void *dsm_main_space_begin = NULL;
  * each new mapping would require an update to the control segment,
  * which requires locking, in which the postmaster must not be involved.
  */
-static dlist_head dsm_segment_list = DLIST_STATIC_INIT(dsm_segment_list);
+static dlist_head dsm_segment_list;
+
+void
+pglite_tls_init_storage_ipc_dsm(void)
+{
+	dsm_segment_list = (dlist_head)DLIST_STATIC_INIT(dsm_segment_list);
+}
 
 /*
  * Control segment information.

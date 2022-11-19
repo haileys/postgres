@@ -516,7 +516,7 @@ static relopt_enum enumRelOpts[] =
 			RELOPT_KIND_HEAP | RELOPT_KIND_TOAST,
 			ShareUpdateExclusiveLock
 		},
-		StdRdOptIndexCleanupValues,
+		NULL, // StdRdOptIndexCleanupValues,
 		STDRD_OPTION_VACUUM_INDEX_CLEANUP_AUTO,
 		gettext_noop("Valid values are \"on\", \"off\", and \"auto\".")
 	},
@@ -527,7 +527,7 @@ static relopt_enum enumRelOpts[] =
 			RELOPT_KIND_GIST,
 			AccessExclusiveLock
 		},
-		gistBufferingOptValues,
+		NULL, // gistBufferingOptValues,
 		GIST_OPTION_BUFFERING_AUTO,
 		gettext_noop("Valid values are \"on\", \"off\", and \"auto\".")
 	},
@@ -538,13 +538,23 @@ static relopt_enum enumRelOpts[] =
 			RELOPT_KIND_VIEW,
 			AccessExclusiveLock
 		},
-		viewCheckOptValues,
+		NULL, // viewCheckOptValues,
 		VIEW_OPTION_CHECK_OPTION_NOT_SET,
 		gettext_noop("Valid values are \"local\" and \"cascaded\".")
 	},
 	/* list terminator */
 	{{NULL}}
 };
+
+// TLS pre-init data cannot refer to other TLS pre-init data
+// must init at thread create time
+void
+pglite_tls_init_access_common_reloptions(void)
+{
+	enumRelOpts[0].members = StdRdOptIndexCleanupValues;
+	enumRelOpts[1].members = gistBufferingOptValues;
+	enumRelOpts[2].members = viewCheckOptValues;
+}
 
 static relopt_string stringRelOpts[] =
 {

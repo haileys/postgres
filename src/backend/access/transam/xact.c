@@ -250,8 +250,13 @@ static TransactionStateData TopTransactionStateData = {
 static int	nUnreportedXids;
 static TransactionId unreportedXids[PGPROC_MAX_CACHED_SUBXIDS];
 
-static TransactionState CurrentTransactionState = &TopTransactionStateData;
+static TransactionState CurrentTransactionState = NULL;
 
+void
+pglite_tls_init_access_transam_xact(void)
+{
+	CurrentTransactionState = &TopTransactionStateData;
+}
 /*
  * The subtransaction ID and command ID assignment counters are global
  * to a whole transaction, so we do not keep them in the state stack.
