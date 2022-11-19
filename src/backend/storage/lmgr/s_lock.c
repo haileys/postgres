@@ -53,6 +53,7 @@
 #include "common/pg_prng.h"
 #include "port/atomics.h"
 #include "storage/s_lock.h"
+#include "storage/spin.h"
 
 #define MIN_SPINS_PER_DELAY 10
 #define MAX_SPINS_PER_DELAY 1000
@@ -65,6 +66,11 @@ slock_t		dummy_spinlock;
 
 static int	spins_per_delay = DEFAULT_SPINS_PER_DELAY;
 
+void
+pglite_init_dummy_spin_lock(void)
+{
+	SpinLockInit(&dummy_spinlock);
+}
 
 /*
  * s_lock_stuck() - complain about a stuck spinlock

@@ -1107,4 +1107,7 @@ init_spin_delay(SpinDelayStatus *status,
 extern void perform_spin_delay(SpinDelayStatus *status);
 extern void finish_spin_delay(SpinDelayStatus *status);
 
+// pglite:
+void pglite_init_dummy_spin_lock(void);
+
 #endif	 /* S_LOCK_H */
