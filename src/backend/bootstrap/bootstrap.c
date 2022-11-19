@@ -209,7 +209,7 @@ BootstrapModeMain(int argc, char *argv[], bool check_only)
 
 	Assert(!IsUnderPostmaster);
 
-	InitStandaloneProcess(argv[0]);
+	InitStandaloneProcess();
 
 	/* Set defaults, to be overridden by explicit options below */
 	InitializeGUCOptions();

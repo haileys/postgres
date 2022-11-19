@@ -172,7 +172,7 @@ InitPostmasterChild(void)
  * argv0 has to be suitable to find the program's executable.
  */
 void
-InitStandaloneProcess(const char *argv0)
+InitStandaloneProcess(void)
 {
 	Assert(!IsPostmasterEnvironment);
 
@@ -190,24 +190,6 @@ InitStandaloneProcess(const char *argv0)
 	MyLatch = &LocalLatchData;
 	InitLatch(MyLatch);
 	InitializeLatchWaitSet();
-
-	/*
-	 * For consistency with InitPostmasterChild, initialize signal mask here.
-	 * But we don't unblock SIGQUIT or provide a default handler for it.
-	 */
-	pqinitmask();
-	PG_SETMASK(&BlockSig);
-
-	/* Compute paths, no postmaster to inherit from */
-	if (my_exec_path[0] == '\0')
-	{
-		if (find_my_exec(argv0, my_exec_path) < 0)
-			elog(FATAL, "%s: could not locate my own executable path",
-				 argv0);
-	}
-
-	if (pkglib_path[0] == '\0')
-		get_pkglib_path(my_exec_path, pkglib_path);
 }
 
 void

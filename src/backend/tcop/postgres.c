@@ -3969,7 +3969,7 @@ PostgresSingleUserMain(int argc, char *argv[],
 	Assert(!IsUnderPostmaster);
 
 	/* Initialize startup process environment. */
-	InitStandaloneProcess(argv[0]);
+	InitStandaloneProcess();
 
 	/*
 	 * Set default values for command-line options.
