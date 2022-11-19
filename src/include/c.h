@@ -46,6 +46,8 @@
 #ifndef C_H
 #define C_H
 
+#include "pglite.h"
+
 #include "postgres_ext.h"
 
 /* Must undef pg_config_ext.h symbols before including pg_config.h */
