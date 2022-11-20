@@ -113,32 +113,6 @@ char	   *Log_destination_string = NULL;
 bool		syslog_sequence_numbers = true;
 bool		syslog_split_messages = true;
 
-#ifdef HAVE_SYSLOG
-
-/*
- * Max string length to send to syslog().  Note that this doesn't count the
- * sequence-number prefix we add, and of course it doesn't count the prefix
- * added by syslog itself.  Solaris and sysklogd truncate the final message
- * at 1024 bytes, so this value leaves 124 bytes for those prefixes.  (Most
- * other syslog implementations seem to have limits of 2KB or so.)
- */
-#ifndef PG_SYSLOG_LIMIT
-#define PG_SYSLOG_LIMIT 900
-#endif
-
-static bool openlog_done = false;
-static char *syslog_ident = NULL;
-static int	syslog_facility = LOG_LOCAL0;
-
-static void write_syslog(int level, const char *line);
-#endif
-
-#ifdef WIN32
-extern char *event_source;
-
-static void write_eventlog(int level, const char *line, int len);
-#endif
-
 /* We provide a small stack of ErrorData records for re-entrant cases */
 #define ERRORDATA_STACK_SIZE  5
 
@@ -174,7 +148,6 @@ static char formatted_log_time[FORMATTED_TS_LEN];
 static const char *err_gettext(const char *str) pg_attribute_format_arg(1);
 static pg_noinline void set_backtrace(ErrorData *edata, int num_skip);
 static void set_errdata_field(MemoryContextData *cxt, char **ptr, const char *str);
-static void write_console(const char *line, int len);
 static const char *process_log_prefix_padding(const char *p, int *padding);
 static void log_line_prefix(StringInfo buf, ErrorData *edata);
 static void send_message_to_server_log(ErrorData *edata);
@@ -2103,186 +2076,6 @@ write_syslog(int level, const char *line)
 }
 #endif							/* HAVE_SYSLOG */
 
-#ifdef WIN32
-/*
- * Get the PostgreSQL equivalent of the Windows ANSI code page.  "ANSI" system
- * interfaces (e.g. CreateFileA()) expect string arguments in this encoding.
- * Every process in a given system will find the same value at all times.
- */
-static int
-GetACPEncoding(void)
-{
-	static int	encoding = -2;
-
-	if (encoding == -2)
-		encoding = pg_codepage_to_encoding(GetACP());
-
-	return encoding;
-}
-
-/*
- * Write a message line to the windows event log
- */
-static void
-write_eventlog(int level, const char *line, int len)
-{
-	WCHAR	   *utf16;
-	int			eventlevel = EVENTLOG_ERROR_TYPE;
-	static HANDLE evtHandle = INVALID_HANDLE_VALUE;
-
-	if (evtHandle == INVALID_HANDLE_VALUE)
-	{
-		evtHandle = RegisterEventSource(NULL,
-										event_source ? event_source : DEFAULT_EVENT_SOURCE);
-		if (evtHandle == NULL)
-		{
-			evtHandle = INVALID_HANDLE_VALUE;
-			return;
-		}
-	}
-
-	switch (level)
-	{
-		case DEBUG5:
-		case DEBUG4:
-		case DEBUG3:
-		case DEBUG2:
-		case DEBUG1:
-		case LOG:
-		case LOG_SERVER_ONLY:
-		case INFO:
-		case NOTICE:
-			eventlevel = EVENTLOG_INFORMATION_TYPE;
-			break;
-		case WARNING:
-		case WARNING_CLIENT_ONLY:
-			eventlevel = EVENTLOG_WARNING_TYPE;
-			break;
-		case ERROR:
-		case FATAL:
-		case PANIC:
-		default:
-			eventlevel = EVENTLOG_ERROR_TYPE;
-			break;
-	}
-
-	/*
-	 * If message character encoding matches the encoding expected by
-	 * ReportEventA(), call it to avoid the hazards of conversion.  Otherwise,
-	 * try to convert the message to UTF16 and write it with ReportEventW().
-	 * Fall back on ReportEventA() if conversion failed.
-	 *
-	 * Since we palloc the structure required for conversion, also fall
-	 * through to writing unconverted if we have not yet set up
-	 * CurrentMemoryContext.
-	 *
-	 * Also verify that we are not on our way into error recursion trouble due
-	 * to error messages thrown deep inside pgwin32_message_to_UTF16().
-	 */
-	if (!in_error_recursion_trouble() &&
-		CurrentMemoryContext != NULL &&
-		GetMessageEncoding() != GetACPEncoding())
-	{
-		utf16 = pgwin32_message_to_UTF16(line, len, NULL);
-		if (utf16)
-		{
-			ReportEventW(evtHandle,
-						 eventlevel,
-						 0,
-						 0,		/* All events are Id 0 */
-						 NULL,
-						 1,
-						 0,
-						 (LPCWSTR *) &utf16,
-						 NULL);
-			/* XXX Try ReportEventA() when ReportEventW() fails? */
-
-			pfree(utf16);
-			return;
-		}
-	}
-	ReportEventA(evtHandle,
-				 eventlevel,
-				 0,
-				 0,				/* All events are Id 0 */
-				 NULL,
-				 1,
-				 0,
-				 &line,
-				 NULL);
-}
-#endif							/* WIN32 */
-
-static void
-write_console(const char *line, int len)
-{
-	int			rc;
-
-#ifdef WIN32
-
-	/*
-	 * Try to convert the message to UTF16 and write it with WriteConsoleW().
-	 * Fall back on write() if anything fails.
-	 *
-	 * In contrast to write_eventlog(), don't skip straight to write() based
-	 * on the applicable encodings.  Unlike WriteConsoleW(), write() depends
-	 * on the suitability of the console output code page.  Since we put
-	 * stderr into binary mode in SubPostmasterMain(), write() skips the
-	 * necessary translation anyway.
-	 *
-	 * WriteConsoleW() will fail if stderr is redirected, so just fall through
-	 * to writing unconverted to the logfile in this case.
-	 *
-	 * Since we palloc the structure required for conversion, also fall
-	 * through to writing unconverted if we have not yet set up
-	 * CurrentMemoryContext.
-	 */
-	if (!in_error_recursion_trouble() &&
-		!redirection_done &&
-		CurrentMemoryContext != NULL)
-	{
-		WCHAR	   *utf16;
-		int			utf16len;
-
-		utf16 = pgwin32_message_to_UTF16(line, len, &utf16len);
-		if (utf16 != NULL)
-		{
-			HANDLE		stdHandle;
-			DWORD		written;
-
-			stdHandle = GetStdHandle(STD_ERROR_HANDLE);
-			if (WriteConsoleW(stdHandle, utf16, utf16len, &written, NULL))
-			{
-				pfree(utf16);
-				return;
-			}
-
-			/*
-			 * In case WriteConsoleW() failed, fall back to writing the
-			 * message unconverted.
-			 */
-			pfree(utf16);
-		}
-	}
-#else
-
-	/*
-	 * Conversion on non-win32 platforms is not implemented yet. It requires
-	 * non-throw version of pg_do_encoding_conversion(), that converts
-	 * unconvertible characters to '?' without errors.
-	 *
-	 * XXX: We have a no-throw version now. It doesn't convert to '?' though.
-	 */
-#endif
-
-	/*
-	 * We ignore any error from write() here.  We have no useful way to report
-	 * it ... certainly whining on stderr isn't likely to be productive.
-	 */
-	rc = write(fileno(stderr), line, len);
-	(void) rc;
-}
-
 /*
  * get_formatted_log_time -- compute and get the log timestamp.
  *
@@ -2908,164 +2701,11 @@ send_message_to_server_log(ErrorData *edata)
 		}
 	}
 
-	/*
-	 * If the user wants the query that generated this error logged, do it.
-	 */
-	if (check_log_of_query(edata))
-	{
-		log_line_prefix(&buf, edata);
-		appendStringInfoString(&buf, _("STATEMENT:  "));
-		append_with_tabs(&buf, debug_query_string);
-		appendStringInfoChar(&buf, '\n');
-	}
-
-#ifdef HAVE_SYSLOG
-	/* Write to syslog, if enabled */
-	if (Log_destination & LOG_DESTINATION_SYSLOG)
-	{
-		int			syslog_level;
-
-		switch (edata->elevel)
-		{
-			case DEBUG5:
-			case DEBUG4:
-			case DEBUG3:
-			case DEBUG2:
-			case DEBUG1:
-				syslog_level = LOG_DEBUG;
-				break;
-			case LOG:
-			case LOG_SERVER_ONLY:
-			case INFO:
-				syslog_level = LOG_INFO;
-				break;
-			case NOTICE:
-			case WARNING:
-			case WARNING_CLIENT_ONLY:
-				syslog_level = LOG_NOTICE;
-				break;
-			case ERROR:
-				syslog_level = LOG_WARNING;
-				break;
-			case FATAL:
-				syslog_level = LOG_ERR;
-				break;
-			case PANIC:
-			default:
-				syslog_level = LOG_CRIT;
-				break;
-		}
-
-		write_syslog(syslog_level, buf.data);
-	}
-#endif							/* HAVE_SYSLOG */
-
-#ifdef WIN32
-	/* Write to eventlog, if enabled */
-	if (Log_destination & LOG_DESTINATION_EVENTLOG)
-	{
-		write_eventlog(edata->elevel, buf.data, buf.len);
-	}
-#endif							/* WIN32 */
-
-	/*
-	 * Write to stderr, if enabled or if required because of a previous
-	 * limitation.
-	 */
-	if ((Log_destination & LOG_DESTINATION_STDERR) ||
-		whereToSendOutput == DestDebug ||
-		fallback_to_stderr)
-	{
-		/*
-		 * Use the chunking protocol if we know the syslogger should be
-		 * catching stderr output, and we are not ourselves the syslogger.
-		 * Otherwise, just do a vanilla write to stderr.
-		 */
-		if (redirection_done && MyBackendType != B_LOGGER)
-			write_pipe_chunks(buf.data, buf.len, LOG_DESTINATION_STDERR);
-#ifdef WIN32
-
-		/*
-		 * In a win32 service environment, there is no usable stderr. Capture
-		 * anything going there and write it to the eventlog instead.
-		 *
-		 * If stderr redirection is active, it was OK to write to stderr above
-		 * because that's really a pipe to the syslogger process.
-		 */
-		else if (pgwin32_is_service())
-			write_eventlog(edata->elevel, buf.data, buf.len);
-#endif
-		else
-			write_console(buf.data, buf.len);
-	}
-
-	/* If in the syslogger process, try to write messages direct to file */
-	if (MyBackendType == B_LOGGER)
-		write_syslogger_file(buf.data, buf.len, LOG_DESTINATION_STDERR);
+	pglite_log(edata, get_backend_type_for_log());
 
 	/* No more need of the message formatted for stderr */
 	pfree(buf.data);
 }
-
-/*
- * Send data to the syslogger using the chunked protocol
- *
- * Note: when there are multiple backends writing into the syslogger pipe,
- * it's critical that each write go into the pipe indivisibly, and not
- * get interleaved with data from other processes.  Fortunately, the POSIX
- * spec requires that writes to pipes be atomic so long as they are not
- * more than PIPE_BUF bytes long.  So we divide long messages into chunks
- * that are no more than that length, and send one chunk per write() call.
- * The collector process knows how to reassemble the chunks.
- *
- * Because of the atomic write requirement, there are only two possible
- * results from write() here: -1 for failure, or the requested number of
- * bytes.  There is not really anything we can do about a failure; retry would
- * probably be an infinite loop, and we can't even report the error usefully.
- * (There is noplace else we could send it!)  So we might as well just ignore
- * the result from write().  However, on some platforms you get a compiler
- * warning from ignoring write()'s result, so do a little dance with casting
- * rc to void to shut up the compiler.
- */
-void
-write_pipe_chunks(char *data, int len, int dest)
-{
-	PipeProtoChunk p;
-	int			fd = fileno(stderr);
-	int			rc;
-
-	Assert(len > 0);
-
-	p.proto.nuls[0] = p.proto.nuls[1] = '\0';
-	p.proto.pid = MyProcPid;
-	p.proto.flags = 0;
-	if (dest == LOG_DESTINATION_STDERR)
-		p.proto.flags |= PIPE_PROTO_DEST_STDERR;
-	else if (dest == LOG_DESTINATION_CSVLOG)
-		p.proto.flags |= PIPE_PROTO_DEST_CSVLOG;
-	else if (dest == LOG_DESTINATION_JSONLOG)
-		p.proto.flags |= PIPE_PROTO_DEST_JSONLOG;
-
-	/* write all but the last chunk */
-	while (len > PIPE_MAX_PAYLOAD)
-	{
-		/* no need to set PIPE_PROTO_IS_LAST yet */
-		p.proto.len = PIPE_MAX_PAYLOAD;
-		memcpy(p.proto.data, data, PIPE_MAX_PAYLOAD);
-		rc = write(fd, &p, PIPE_HEADER_SIZE + PIPE_MAX_PAYLOAD);
-		(void) rc;
-		data += PIPE_MAX_PAYLOAD;
-		len -= PIPE_MAX_PAYLOAD;
-	}
-
-	/* write the last chunk */
-	p.proto.flags |= PIPE_PROTO_IS_LAST;
-	p.proto.len = len;
-	memcpy(p.proto.data, data, len);
-	rc = write(fd, &p, PIPE_HEADER_SIZE + len);
-	(void) rc;
-}
-
 
 /*
  * Append a text string to the error report being built for the client.
@@ -3340,36 +2980,13 @@ void
 write_stderr(const char *fmt,...)
 {
 	va_list		ap;
-
-#ifdef WIN32
 	char		errbuf[2048];	/* Arbitrary size? */
-#endif
 
 	fmt = _(fmt);
 
 	va_start(ap, fmt);
-#ifndef WIN32
-	/* On Unix, we just fprintf to stderr */
-	vfprintf(stderr, fmt, ap);
-	fflush(stderr);
-#else
 	vsnprintf(errbuf, sizeof(errbuf), fmt, ap);
-
-	/*
-	 * On Win32, we print to stderr if running on a console, or write to
-	 * eventlog if running as a service
-	 */
-	if (pgwin32_is_service())	/* Running as a service */
-	{
-		write_eventlog(ERROR, errbuf, strlen(errbuf));
-	}
-	else
-	{
-		/* Not running as service, write to stderr */
-		write_console(errbuf, strlen(errbuf));
-		fflush(stderr);
-	}
-#endif
+	pglite_log_raw(errbuf, strlen(errbuf));
 	va_end(ap);
 }
 

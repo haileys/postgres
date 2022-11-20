@@ -1,7 +1,14 @@
 #ifndef PGLITE_H
 #define PGLITE_H
 
+#include <utils/elog.h>
+
 void pglite_exit_thread(int code) pg_attribute_noreturn();
+
+void pglite_log(ErrorData* edata, const char* backend);
+
+#define pglite_log_raw(msg, len) pglite_log_raw_((msg), (len), __FILE__, __LINE__, __FUNCTION__)
+void pglite_log_raw_(const char* msg, size_t len, const char* filename, int lineno, const char* funcname);
 
 void pglite_tls_init_access_common_reloptions(void);
 void pglite_tls_init_access_transam_multixacct(void);

@@ -576,11 +576,6 @@ BaseInit(void)
 	Assert(MyProc != NULL);
 
 	/*
-	 * Initialize our input/output/debugging file descriptors.
-	 */
-	DebugFileOpen();
-
-	/*
 	 * Initialize file access. Done early so other subsystems can access
 	 * files.
 	 */
