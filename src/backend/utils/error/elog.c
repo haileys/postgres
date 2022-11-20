@@ -2968,36 +2968,6 @@ send_message_to_server_log(ErrorData *edata)
 	}
 #endif							/* WIN32 */
 
-	/* Write to csvlog, if enabled */
-	if (Log_destination & LOG_DESTINATION_CSVLOG)
-	{
-		/*
-		 * Send CSV data if it's safe to do so (syslogger doesn't need the
-		 * pipe).  If this is not possible, fallback to an entry written to
-		 * stderr.
-		 */
-		if (redirection_done || MyBackendType == B_LOGGER)
-			write_csvlog(edata);
-		else
-			fallback_to_stderr = true;
-	}
-
-	/* Write to JSON log, if enabled */
-	if (Log_destination & LOG_DESTINATION_JSONLOG)
-	{
-		/*
-		 * Send JSON data if it's safe to do so (syslogger doesn't need the
-		 * pipe).  If this is not possible, fallback to an entry written to
-		 * stderr.
-		 */
-		if (redirection_done || MyBackendType == B_LOGGER)
-		{
-			write_jsonlog(edata);
-		}
-		else
-			fallback_to_stderr = true;
-	}
-
 	/*
 	 * Write to stderr, if enabled or if required because of a previous
 	 * limitation.
