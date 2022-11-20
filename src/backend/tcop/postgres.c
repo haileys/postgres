@@ -3930,14 +3930,11 @@ process_postgres_switches(int argc, char *argv[], GucContext ctx,
 		if (IsUnderPostmaster)
 			ereport(FATAL,
 					errcode(ERRCODE_SYNTAX_ERROR),
-					errmsg("invalid command-line argument for server process: %s", argv[optind]),
-					errhint("Try \"%s --help\" for more information.", progname));
+					errmsg("invalid command-line argument for server process: %s", argv[optind]));
 		else
 			ereport(FATAL,
 					errcode(ERRCODE_SYNTAX_ERROR),
-					errmsg("%s: invalid command-line argument: %s",
-						   progname, argv[optind]),
-					errhint("Try \"%s --help\" for more information.", progname));
+					errmsg("invalid command-line argument: %s", argv[optind]));
 	}
 
 	/*
@@ -3988,12 +3985,11 @@ PostgresSingleUserMain(int argc, char *argv[],
 		if (dbname == NULL)
 			ereport(FATAL,
 					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("%s: no database nor user name specified",
-							progname)));
+					 errmsg("no database nor user name specified")));
 	}
 
 	/* Acquire configuration parameters */
-	if (!SelectConfigFiles(userDoption, progname))
+	if (!SelectConfigFiles(userDoption, "" /* progname */))
 		proc_exit(1);
 
 	/*
