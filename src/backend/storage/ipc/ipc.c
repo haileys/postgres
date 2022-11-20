@@ -149,7 +149,7 @@ proc_exit(int code)
 
 	elog(DEBUG3, "exit(%d)", code);
 
-	exit(code);
+	pglite_exit_thread(code);
 }
 
 /*

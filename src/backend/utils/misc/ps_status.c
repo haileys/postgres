@@ -179,7 +179,7 @@ save_ps_display_args(int argc, char **argv)
 		if (!new_environ)
 		{
 			write_stderr("out of memory\n");
-			exit(1);
+			pglite_exit_thread(1);
 		}
 		for (i = 0; environ[i] != NULL; i++)
 		{
@@ -187,7 +187,7 @@ save_ps_display_args(int argc, char **argv)
 			if (!new_environ[i])
 			{
 				write_stderr("out of memory\n");
-				exit(1);
+				pglite_exit_thread(1);
 			}
 		}
 		new_environ[i] = NULL;
@@ -217,7 +217,7 @@ save_ps_display_args(int argc, char **argv)
 		if (!new_argv)
 		{
 			write_stderr("out of memory\n");
-			exit(1);
+			pglite_exit_thread(1);
 		}
 		for (i = 0; i < argc; i++)
 		{
@@ -225,7 +225,7 @@ save_ps_display_args(int argc, char **argv)
 			if (!new_argv[i])
 			{
 				write_stderr("out of memory\n");
-				exit(1);
+				pglite_exit_thread(1);
 			}
 		}
 		new_argv[argc] = NULL;

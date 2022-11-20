@@ -402,7 +402,7 @@ errstart(int elevel, const char *domain)
 	{
 		/* Oops, hard crash time; very little we can do safely here */
 		write_stderr("error occurred before error message processing is available\n");
-		exit(2);
+		pglite_exit_thread(2);
 	}
 
 	/*

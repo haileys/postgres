@@ -1,6 +1,8 @@
 #ifndef PGLITE_H
 #define PGLITE_H
 
+void pglite_exit_thread(int code) pg_attribute_noreturn();
+
 void pglite_tls_init_access_common_reloptions(void);
 void pglite_tls_init_access_transam_multixacct(void);
 void pglite_tls_init_access_transam_parallel(void);

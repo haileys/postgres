@@ -46,8 +46,6 @@
 #ifndef C_H
 #define C_H
 
-#include "pglite.h"
-
 #include "postgres_ext.h"
 
 /* Must undef pg_config_ext.h symbols before including pg_config.h */
@@ -1387,5 +1385,7 @@ typedef intptr_t sigjmp_buf[5];
 
 /* /port compatibility functions */
 #include "port.h"
+
+#include "pglite.h"
 
 #endif							/* C_H */

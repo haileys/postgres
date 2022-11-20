@@ -4642,7 +4642,7 @@ internal_forkexec(int argc, char *argv[], Port *port)
 					(errmsg("could not execute server process \"%s\": %m",
 							postgres_exec_path)));
 			/* We're already in the child process here, can't return */
-			exit(1);
+			pglite_exit_thread(1);
 		}
 	}
 
@@ -5305,7 +5305,7 @@ sigusr1_handler(SIGNAL_ARGS)
 static void
 process_startup_packet_die(SIGNAL_ARGS)
 {
-	_exit(1);
+	pglite_exit_thread(1);
 }
 
 /*
@@ -5329,7 +5329,7 @@ dummy_handler(SIGNAL_ARGS)
 static void
 StartupPacketTimeoutHandler(void)
 {
-	_exit(1);
+	pglite_exit_thread(1);
 }
 
 
@@ -5828,7 +5828,7 @@ do_start_bgworker(RegisteredBgWorker *rw)
 
 			StartBackgroundWorker();
 
-			exit(1);			/* should not get here */
+			pglite_exit_thread(1);			/* should not get here */
 			break;
 #endif
 		default:
@@ -6272,7 +6272,7 @@ read_inheritable_socket(SOCKET *dest, InheritableSocket *src)
 		{
 			write_stderr("could not create inherited socket: error code %d\n",
 						 WSAGetLastError());
-			exit(1);
+			pglite_exit_thread(1);
 		}
 		*dest = s;
 
@@ -6301,14 +6301,14 @@ read_backend_variables(char *id, Port *port)
 	{
 		write_stderr("could not open backend variables file \"%s\": %s\n",
 					 id, strerror(errno));
-		exit(1);
+		pglite_exit_thread(1);
 	}
 
 	if (fread(&param, sizeof(param), 1, fp) != 1)
 	{
 		write_stderr("could not read from backend variables file \"%s\": %s\n",
 					 id, strerror(errno));
-		exit(1);
+		pglite_exit_thread(1);
 	}
 
 	/* Release file */
@@ -6317,7 +6317,7 @@ read_backend_variables(char *id, Port *port)
 	{
 		write_stderr("could not remove file \"%s\": %s\n",
 					 id, strerror(errno));
-		exit(1);
+		pglite_exit_thread(1);
 	}
 #else
 	/* Win32 version uses mapped file */
@@ -6334,7 +6334,7 @@ read_backend_variables(char *id, Port *port)
 	{
 		write_stderr("could not map view of backend variables: error code %lu\n",
 					 GetLastError());
-		exit(1);
+		pglite_exit_thread(1);
 	}
 
 	memcpy(&param, paramp, sizeof(BackendParameters));
@@ -6343,14 +6343,14 @@ read_backend_variables(char *id, Port *port)
 	{
 		write_stderr("could not unmap view of backend variables: error code %lu\n",
 					 GetLastError());
-		exit(1);
+		pglite_exit_thread(1);
 	}
 
 	if (!CloseHandle(paramHandle))
 	{
 		write_stderr("could not close handle to backend parameter variables: error code %lu\n",
 					 GetLastError());
-		exit(1);
+		pglite_exit_thread(1);
 	}
 #endif
 

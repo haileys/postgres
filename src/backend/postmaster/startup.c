@@ -197,7 +197,7 @@ HandleStartupProcInterrupts(void)
 		postmaster_poll_count++ % POSTMASTER_POLL_RATE_LIMIT == 0 &&
 #endif
 		!PostmasterIsAlive())
-		exit(1);
+		pglite_exit_thread(1);
 
 	/* Process barrier events */
 	if (ProcSignalBarrierPending)

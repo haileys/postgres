@@ -84,7 +84,7 @@ s_lock_stuck(const char *file, int line, const char *func)
 	fprintf(stderr,
 			"\nStuck spinlock detected at %s, %s:%d.\n",
 			func, file, line);
-	exit(1);
+	pglite_exit_thread(1);
 #else
 	elog(PANIC, "stuck spinlock detected at %s, %s:%d",
 		 func, file, line);
