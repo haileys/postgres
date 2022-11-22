@@ -3834,9 +3834,6 @@ process_postgres_switches(int argc, char *argv[], GucContext ctx,
 				break;
 
 			case 'r':
-				/* send output (stdout and stderr) to the given file */
-				if (secure)
-					strlcpy(OutputFileName, optarg, MAXPGPATH);
 				break;
 
 			case 'S':

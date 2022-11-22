@@ -251,7 +251,6 @@ BootstrapModeMain(int argc, char *argv[], bool check_only)
 				bootstrap_data_checksum_version = PG_DATA_CHECKSUM_VERSION;
 				break;
 			case 'r':
-				strlcpy(OutputFileName, optarg, MAXPGPATH);
 				break;
 			case 'X':
 				{
