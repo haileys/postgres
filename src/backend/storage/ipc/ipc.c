@@ -141,8 +141,8 @@ proc_exit(int code)
 		 * Use mkdir() instead of MakePGDirectory() since we aren't making a
 		 * PG directory here.
 		 */
-		mkdir("gprof", S_IRWXU | S_IRWXG | S_IRWXO);
-		mkdir(gprofDirName, S_IRWXU | S_IRWXG | S_IRWXO);
+		pglite_mkdir("gprof", S_IRWXU | S_IRWXG | S_IRWXO);
+		pglite_mkdir(gprofDirName, S_IRWXU | S_IRWXG | S_IRWXO);
 		chdir(gprofDirName);
 	}
 #endif

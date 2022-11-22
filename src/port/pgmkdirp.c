@@ -132,7 +132,7 @@ pg_mkdir_p(char *path, int omode)
 				break;
 			}
 		}
-		else if (mkdir(path, last ? omode : S_IRWXU | S_IRWXG | S_IRWXO) < 0)
+		else if (pglite_raw_mkdir(path, last ? omode : S_IRWXU | S_IRWXG | S_IRWXO) < 0)
 		{
 			retval = -1;
 			break;

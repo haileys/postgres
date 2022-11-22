@@ -187,7 +187,7 @@ GETTEMP(char *path, int *doopen, int domkdir)
 		}
 		else if (domkdir)
 		{
-			if (mkdir(path, 0700) >= 0)
+			if (pglite_raw_mkdir(path, 0700) >= 0)
 				return 1;
 			if (errno != EEXIST)
 				return 0;

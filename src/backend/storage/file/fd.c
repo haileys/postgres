@@ -3802,7 +3802,7 @@ fsync_parent_path(const char *fname, int elevel)
 int
 MakePGDirectory(const char *directoryName)
 {
-	return mkdir(directoryName, pg_dir_create_mode);
+	return pglite_mkdir(directoryName, pg_dir_create_mode);
 }
 
 /*
