@@ -6173,7 +6173,7 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 	/*
 	 * Now read the config file for the first time.
 	 */
-	if (stat(ConfigFileName, &stat_buf) != 0)
+	if (pglite_stat(ConfigFileName, &stat_buf) != 0)
 	{
 		write_stderr("%s: could not access the server configuration file \"%s\": %s\n",
 					 progname, ConfigFileName, strerror(errno));
@@ -9009,7 +9009,7 @@ AlterSystemSetConfigFile(AlterSystemStmt *altersysstmt)
 	{
 		struct stat st;
 
-		if (stat(AutoConfFileName, &st) == 0)
+		if (pglite_stat(AutoConfFileName, &st) == 0)
 		{
 			/* open old file PG_AUTOCONF_FILENAME */
 			FILE	   *infile;

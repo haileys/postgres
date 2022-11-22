@@ -203,7 +203,7 @@ PGReserveSemaphores(int maxSemas)
 	 * postmasters, while maximizing the odds that we will detect and clean up
 	 * semaphores left over from a crashed postmaster in our own directory.
 	 */
-	if (stat(DataDir, &statbuf) < 0)
+	if (pglite_raw_stat(DataDir, &statbuf) < 0)
 		ereport(FATAL,
 				(errcode_for_file_access(),
 				 errmsg("could not stat data directory \"%s\": %m",

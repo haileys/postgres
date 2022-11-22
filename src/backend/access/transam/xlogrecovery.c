@@ -695,7 +695,7 @@ InitWalRecovery(ControlFileData *ControlFile, bool *wasShutdown_ptr,
 		 * that occurs in rename operation as even if map file is present
 		 * without backup_label file, it is harmless.
 		 */
-		if (stat(TABLESPACE_MAP, &st) == 0)
+		if (pglite_stat(TABLESPACE_MAP, &st) == 0)
 		{
 			unlink(TABLESPACE_MAP_OLD);
 			if (durable_rename(TABLESPACE_MAP, TABLESPACE_MAP_OLD, DEBUG1) == 0)
@@ -974,7 +974,7 @@ readRecoverySignalFile(void)
 	/*
 	 * Check for old recovery API file: recovery.conf
 	 */
-	if (stat(RECOVERY_COMMAND_FILE, &stat_buf) == 0)
+	if (pglite_stat(RECOVERY_COMMAND_FILE, &stat_buf) == 0)
 		ereport(FATAL,
 				(errcode_for_file_access(),
 				 errmsg("using recovery command file \"%s\" is not supported",
@@ -993,7 +993,7 @@ readRecoverySignalFile(void)
 	 * If present, standby signal file takes precedence. If neither is present
 	 * then we won't enter archive recovery.
 	 */
-	if (stat(STANDBY_SIGNAL_FILE, &stat_buf) == 0)
+	if (pglite_stat(STANDBY_SIGNAL_FILE, &stat_buf) == 0)
 	{
 		int			fd;
 
@@ -1006,7 +1006,7 @@ readRecoverySignalFile(void)
 		}
 		standby_signal_file_found = true;
 	}
-	else if (stat(RECOVERY_SIGNAL_FILE, &stat_buf) == 0)
+	else if (pglite_stat(RECOVERY_SIGNAL_FILE, &stat_buf) == 0)
 	{
 		int			fd;
 
@@ -4366,7 +4366,7 @@ CheckForStandbyTrigger(void)
 	if (PromoteTriggerFile == NULL || strcmp(PromoteTriggerFile, "") == 0)
 		return false;
 
-	if (stat(PromoteTriggerFile, &stat_buf) == 0)
+	if (pglite_stat(PromoteTriggerFile, &stat_buf) == 0)
 	{
 		ereport(LOG,
 				(errmsg("promote trigger file found: %s", PromoteTriggerFile)));
@@ -4400,7 +4400,7 @@ CheckPromoteSignal(void)
 {
 	struct stat stat_buf;
 
-	if (stat(PROMOTE_SIGNAL_FILE, &stat_buf) == 0)
+	if (pglite_stat(PROMOTE_SIGNAL_FILE, &stat_buf) == 0)
 		return true;
 
 	return false;

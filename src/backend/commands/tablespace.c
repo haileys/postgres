@@ -132,7 +132,7 @@ TablespaceCreateDbspace(Oid spcNode, Oid dbNode, bool isRedo)
 
 	dir = GetDatabasePath(dbNode, spcNode);
 
-	if (stat(dir, &st) < 0)
+	if (pglite_stat(dir, &st) < 0)
 	{
 		/* Directory does not exist? */
 		if (errno == ENOENT)
@@ -147,7 +147,7 @@ TablespaceCreateDbspace(Oid spcNode, Oid dbNode, bool isRedo)
 			 * Recheck to see if someone created the directory while we were
 			 * waiting for lock.
 			 */
-			if (stat(dir, &st) == 0 && S_ISDIR(st.st_mode))
+			if (pglite_stat(dir, &st) == 0 && S_ISDIR(st.st_mode))
 			{
 				/* Directory was created */
 			}
@@ -646,7 +646,7 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 	 * have failed in the absence of a parent.  pg_tablespace_spcname_index
 	 * prevents concurrency.
 	 */
-	if (stat(location_with_version_dir, &st) < 0)
+	if (pglite_stat(location_with_version_dir, &st) < 0)
 	{
 		if (errno != ENOENT)
 			ereport(ERROR,

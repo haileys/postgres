@@ -434,7 +434,7 @@ pgarch_ArchiverCopyLoop(void)
 			 * durability.
 			 */
 			snprintf(pathname, MAXPGPATH, XLOGDIR "/%s", xlog);
-			if (stat(pathname, &stat_buf) != 0 && errno == ENOENT)
+			if (pglite_stat(pathname, &stat_buf) != 0 && errno == ENOENT)
 			{
 				char		xlogready[MAXPGPATH];
 
@@ -586,7 +586,7 @@ pgarch_readyXlog(char *xlog)
 		arch_file = arch_files->arch_files[arch_files->arch_files_size];
 		StatusFilePath(status_file, arch_file, ".ready");
 
-		if (stat(status_file, &st) == 0)
+		if (pglite_stat(status_file, &st) == 0)
 		{
 			strcpy(xlog, arch_file);
 			return true;

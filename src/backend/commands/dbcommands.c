@@ -588,7 +588,7 @@ CreateDatabaseUsingFileCopy(Oid src_dboid, Oid dst_dboid, Oid src_tsid,
 
 		srcpath = GetDatabasePath(src_dboid, srctablespace);
 
-		if (stat(srcpath, &st) < 0 || !S_ISDIR(st.st_mode) ||
+		if (pglite_stat(srcpath, &st) < 0 || !S_ISDIR(st.st_mode) ||
 			directory_is_empty(srcpath))
 		{
 			/* Assume we can ignore it */
@@ -1194,7 +1194,7 @@ createdb(ParseState *pstate, const CreatedbStmt *stmt)
 
 			srcpath = GetDatabasePath(src_dboid, dst_deftablespace);
 
-			if (stat(srcpath, &st) == 0 &&
+			if (pglite_stat(srcpath, &st) == 0 &&
 				S_ISDIR(st.st_mode) &&
 				!directory_is_empty(srcpath))
 				ereport(ERROR,
@@ -3027,7 +3027,7 @@ recovery_create_dbdir(char *path, bool only_tblspc)
 
 	Assert(RecoveryInProgress());
 
-	if (stat(path, &st) == 0)
+	if (pglite_stat(path, &st) == 0)
 		return;
 
 	if (only_tblspc && strstr(path, "pg_tblspc/") == NULL)
@@ -3074,7 +3074,7 @@ dbase_redo(XLogReaderState *record)
 		 * subdirectory if present, then re-copy the source data. This may be
 		 * more work than needed, but it is simple to implement.
 		 */
-		if (stat(dst_path, &st) == 0 && S_ISDIR(st.st_mode))
+		if (pglite_stat(dst_path, &st) == 0 && S_ISDIR(st.st_mode))
 		{
 			if (!rmtree(dst_path, true))
 				/* If this failed, copydir() below is going to error. */
@@ -3091,7 +3091,7 @@ dbase_redo(XLogReaderState *record)
 		 */
 		parent_path = pstrdup(dst_path);
 		get_parent_directory(parent_path);
-		if (stat(parent_path, &st) < 0)
+		if (pglite_stat(parent_path, &st) < 0)
 		{
 			if (errno != ENOENT)
 				ereport(FATAL,
@@ -3108,7 +3108,7 @@ dbase_redo(XLogReaderState *record)
 		 * copydir below doesn't fail.  The directory will be dropped soon by
 		 * recovery.
 		 */
-		if (stat(src_path, &st) < 0 && errno == ENOENT)
+		if (pglite_stat(src_path, &st) < 0 && errno == ENOENT)
 			recovery_create_dbdir(src_path, false);
 
 		/*

@@ -203,7 +203,7 @@ internal_load_library(const char *libname)
 		/*
 		 * Check for same files - different paths (ie, symlink or link)
 		 */
-		if (stat(libname, &stat_buf) == -1)
+		if (pglite_stat(libname, &stat_buf) == -1)
 			ereport(ERROR,
 					(errcode_for_file_access(),
 					 errmsg("could not access file \"%s\": %m",
@@ -407,7 +407,7 @@ file_exists(const char *name)
 
 	AssertArg(name != NULL);
 
-	if (stat(name, &st) == 0)
+	if (pglite_stat(name, &st) == 0)
 		return !S_ISDIR(st.st_mode);
 	else if (!(errno == ENOENT || errno == ENOTDIR || errno == EACCES))
 		ereport(ERROR,

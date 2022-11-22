@@ -768,7 +768,7 @@ check_input(char *path)
 {
 	struct stat statbuf;
 
-	if (stat(path, &statbuf) != 0)
+	if (pglite_raw_stat(path, &statbuf) != 0)
 	{
 		if (errno == ENOENT)
 		{

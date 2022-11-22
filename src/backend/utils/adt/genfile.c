@@ -403,7 +403,7 @@ pg_stat_file(PG_FUNCTION_ARGS)
 
 	filename = convert_and_check_filename(filename_t);
 
-	if (stat(filename, &fst) < 0)
+	if (pglite_stat(filename, &fst) < 0)
 	{
 		if (missing_ok && errno == ENOENT)
 			PG_RETURN_NULL();
@@ -578,7 +578,7 @@ pg_ls_dir_files(FunctionCallInfo fcinfo, const char *dir, bool missing_ok)
 
 		/* Get the file info */
 		snprintf(path, sizeof(path), "%s/%s", dir, de->d_name);
-		if (stat(path, &attrib) < 0)
+		if (pglite_stat(path, &attrib) < 0)
 		{
 			/* Ignore concurrently-deleted files, else complain */
 			if (errno == ENOENT)

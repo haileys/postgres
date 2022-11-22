@@ -1623,7 +1623,7 @@ CheckLogrotateSignal(void)
 {
 	struct stat stat_buf;
 
-	if (stat(LOGROTATE_SIGNAL_FILE, &stat_buf) == 0)
+	if (pglite_stat(LOGROTATE_SIGNAL_FILE, &stat_buf) == 0)
 		return true;
 
 	return false;

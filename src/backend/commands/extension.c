@@ -1432,7 +1432,7 @@ CreateExtensionInternal(char *extensionName,
 	 * will get us there.
 	 */
 	filename = get_extension_script_filename(pcontrol, NULL, versionName);
-	if (stat(filename, &fst) == 0)
+	if (pglite_stat(filename, &fst) == 0)
 	{
 		/* Easy, no extra scripts */
 		updateVersions = NIL;
@@ -3366,7 +3366,7 @@ read_whole_file(const char *filename, int *length)
 	size_t		bytes_to_read;
 	struct stat fst;
 
-	if (stat(filename, &fst) < 0)
+	if (pglite_stat(filename, &fst) < 0)
 		ereport(ERROR,
 				(errcode_for_file_access(),
 				 errmsg("could not stat file \"%s\": %m", filename)));

@@ -82,7 +82,7 @@ db_dir_size(const char *path)
 
 		snprintf(filename, sizeof(filename), "%s/%s", path, direntry->d_name);
 
-		if (stat(filename, &fst) < 0)
+		if (pglite_stat(filename, &fst) < 0)
 		{
 			if (errno == ENOENT)
 				continue;
@@ -234,7 +234,7 @@ calculate_tablespace_size(Oid tblspcOid)
 
 		snprintf(pathname, sizeof(pathname), "%s/%s", tblspcPath, direntry->d_name);
 
-		if (stat(pathname, &fst) < 0)
+		if (pglite_stat(pathname, &fst) < 0)
 		{
 			if (errno == ENOENT)
 				continue;
@@ -314,7 +314,7 @@ calculate_relation_size(RelFileNode *rfn, BackendId backend, ForkNumber forknum)
 			snprintf(pathname, MAXPGPATH, "%s.%u",
 					 relationpath, segcount);
 
-		if (stat(pathname, &fst) < 0)
+		if (pglite_stat(pathname, &fst) < 0)
 		{
 			if (errno == ENOENT)
 				break;

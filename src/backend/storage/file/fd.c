@@ -1676,7 +1676,7 @@ PathNameDeleteTemporaryDir(const char *dirname)
 	struct stat statbuf;
 
 	/* Silently ignore missing directory. */
-	if (stat(dirname, &statbuf) != 0 && errno == ENOENT)
+	if (pglite_stat(dirname, &statbuf) != 0 && errno == ENOENT)
 		return;
 
 	/*
@@ -1918,7 +1918,7 @@ PathNameDeleteTemporaryFile(const char *path, bool error_on_failure)
 	int			stat_errno;
 
 	/* Get the final size for pgstat reporting. */
-	if (stat(path, &filestats) != 0)
+	if (pglite_stat(path, &filestats) != 0)
 		stat_errno = errno;
 	else
 		stat_errno = 0;
@@ -2015,7 +2015,7 @@ FileClose(File file)
 
 
 		/* first try the stat() */
-		if (stat(vfdP->fileName, &filestats))
+		if (pglite_stat(vfdP->fileName, &filestats))
 			stat_errno = errno;
 		else
 			stat_errno = 0;

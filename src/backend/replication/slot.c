@@ -1541,7 +1541,7 @@ CreateSlotOnDisk(ReplicationSlot *slot)
 	 * out at the MakePGDirectory() below, so we don't bother checking
 	 * success.
 	 */
-	if (stat(tmppath, &st) == 0 && S_ISDIR(st.st_mode))
+	if (pglite_stat(tmppath, &st) == 0 && S_ISDIR(st.st_mode))
 		rmtree(tmppath, true);
 
 	/* Create and fsync the temporary slot directory. */

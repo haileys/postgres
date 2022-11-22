@@ -677,7 +677,7 @@ scan_available_timezones(char *tzdir, char *tzdirsub, struct tztry *tt,
 		snprintf(tzdir + tzdir_orig_len, MAXPGPATH - tzdir_orig_len,
 				 "/%s", name);
 
-		if (stat(tzdir, &statbuf) != 0)
+		if (pglite_raw_stat(tzdir, &statbuf) != 0)
 		{
 #ifdef DEBUG_IDENTIFY_TIMEZONE
 			fprintf(stderr, "could not stat \"%s\": %s\n",

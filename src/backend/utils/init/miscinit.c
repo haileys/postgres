@@ -303,7 +303,7 @@ checkDataDir(void)
 
 	Assert(DataDir);
 
-	if (stat(DataDir, &stat_buf) != 0)
+	if (pglite_raw_stat(DataDir, &stat_buf) != 0)
 	{
 		if (errno == ENOENT)
 			ereport(FATAL,

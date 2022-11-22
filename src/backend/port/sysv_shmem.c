@@ -408,7 +408,7 @@ PGSharedMemoryAttach(IpcMemoryId shmId,
 	 * duplicative; but since this isn't a high-traffic case it's not worth
 	 * trying to optimize.)
 	 */
-	if (stat(DataDir, &statbuf) < 0)
+	if (pglite_raw_stat(DataDir, &statbuf) < 0)
 		return SHMSTATE_ANALYSIS_FAILURE;	/* can't stat; be conservative */
 
 	hdr = (PGShmemHeader *) shmat(shmId, attachAt, PG_SHMAT_FLAGS);
@@ -689,7 +689,7 @@ PGSharedMemoryCreate(Size size,
 	 * positively identify shmem segments associated with this data dir, and
 	 * also as seeds for searching for a free shmem key.
 	 */
-	if (stat(DataDir, &statbuf) < 0)
+	if (pglite_raw_stat(DataDir, &statbuf) < 0)
 		ereport(FATAL,
 				(errcode_for_file_access(),
 				 errmsg("could not stat data directory \"%s\": %m",

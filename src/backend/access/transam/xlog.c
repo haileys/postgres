@@ -3792,7 +3792,7 @@ ValidateXLOGDirectoryStructure(void)
 	struct stat stat_buf;
 
 	/* Check for pg_wal; if it doesn't exist, error out */
-	if (stat(XLOGDIR, &stat_buf) != 0 ||
+	if (pglite_stat(XLOGDIR, &stat_buf) != 0 ||
 		!S_ISDIR(stat_buf.st_mode))
 		ereport(FATAL,
 				(errmsg("required WAL directory \"%s\" does not exist",
@@ -3800,7 +3800,7 @@ ValidateXLOGDirectoryStructure(void)
 
 	/* Check for archive_status */
 	snprintf(path, MAXPGPATH, XLOGDIR "/archive_status");
-	if (stat(path, &stat_buf) == 0)
+	if (pglite_stat(path, &stat_buf) == 0)
 	{
 		/* Check for weird cases where it exists but isn't a directory */
 		if (!S_ISDIR(stat_buf.st_mode))

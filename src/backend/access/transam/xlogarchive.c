@@ -103,7 +103,7 @@ RestoreArchivedFile(char *path, const char *xlogfname,
 	/*
 	 * Make sure there is no existing file named recovername.
 	 */
-	if (stat(xlogpath, &stat_buf) != 0)
+	if (pglite_stat(xlogpath, &stat_buf) != 0)
 	{
 		if (errno != ENOENT)
 			ereport(FATAL,
@@ -182,7 +182,7 @@ RestoreArchivedFile(char *path, const char *xlogfname,
 		 * command apparently succeeded, but let's make sure the file is
 		 * really there now and has the correct size.
 		 */
-		if (stat(xlogpath, &stat_buf) == 0)
+		if (pglite_stat(xlogpath, &stat_buf) == 0)
 		{
 			if (expectedSize > 0 && stat_buf.st_size != expectedSize)
 			{
@@ -393,7 +393,7 @@ KeepFileRestoredFromArchive(const char *path, const char *xlogfname)
 
 	snprintf(xlogfpath, MAXPGPATH, XLOGDIR "/%s", xlogfname);
 
-	if (stat(xlogfpath, &statbuf) == 0)
+	if (pglite_stat(xlogfpath, &statbuf) == 0)
 	{
 		char		oldpath[MAXPGPATH];
 
@@ -546,12 +546,12 @@ XLogArchiveForceDone(const char *xlog)
 
 	/* Exit if already known done */
 	StatusFilePath(archiveDone, xlog, ".done");
-	if (stat(archiveDone, &stat_buf) == 0)
+	if (pglite_stat(archiveDone, &stat_buf) == 0)
 		return;
 
 	/* If .ready exists, rename it to .done */
 	StatusFilePath(archiveReady, xlog, ".ready");
-	if (stat(archiveReady, &stat_buf) == 0)
+	if (pglite_stat(archiveReady, &stat_buf) == 0)
 	{
 		(void) durable_rename(archiveReady, archiveDone, WARNING);
 		return;
@@ -617,17 +617,17 @@ XLogArchiveCheckDone(const char *xlog)
 
 	/* First check for .done --- this means archiver is done with it */
 	StatusFilePath(archiveStatusPath, xlog, ".done");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	/* check for .ready --- this means archiver is still busy with it */
 	StatusFilePath(archiveStatusPath, xlog, ".ready");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return false;
 
 	/* Race condition --- maybe archiver just finished, so recheck */
 	StatusFilePath(archiveStatusPath, xlog, ".done");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	/* Retry creation of the .ready file */
@@ -653,17 +653,17 @@ XLogArchiveIsBusy(const char *xlog)
 
 	/* First check for .done --- this means archiver is done with it */
 	StatusFilePath(archiveStatusPath, xlog, ".done");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return false;
 
 	/* check for .ready --- this means archiver is still busy with it */
 	StatusFilePath(archiveStatusPath, xlog, ".ready");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	/* Race condition --- maybe archiver just finished, so recheck */
 	StatusFilePath(archiveStatusPath, xlog, ".done");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return false;
 
 	/*
@@ -672,7 +672,7 @@ XLogArchiveIsBusy(const char *xlog)
 	 * status file for it.
 	 */
 	snprintf(archiveStatusPath, MAXPGPATH, XLOGDIR "/%s", xlog);
-	if (stat(archiveStatusPath, &stat_buf) != 0 &&
+	if (pglite_stat(archiveStatusPath, &stat_buf) != 0 &&
 		errno == ENOENT)
 		return false;
 
@@ -698,17 +698,17 @@ XLogArchiveIsReadyOrDone(const char *xlog)
 
 	/* First check for .done --- this means archiver is done with it */
 	StatusFilePath(archiveStatusPath, xlog, ".done");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	/* check for .ready --- this means archiver is still busy with it */
 	StatusFilePath(archiveStatusPath, xlog, ".ready");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	/* Race condition --- maybe archiver just finished, so recheck */
 	StatusFilePath(archiveStatusPath, xlog, ".done");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	return false;
@@ -727,7 +727,7 @@ XLogArchiveIsReady(const char *xlog)
 	struct stat stat_buf;
 
 	StatusFilePath(archiveStatusPath, xlog, ".ready");
-	if (stat(archiveStatusPath, &stat_buf) == 0)
+	if (pglite_stat(archiveStatusPath, &stat_buf) == 0)
 		return true;
 
 	return false;

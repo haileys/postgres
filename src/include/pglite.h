@@ -4,6 +4,8 @@
 #include <dirent.h>
 #include <utils/elog.h>
 #include <utils/palloc.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 void pglite_abort() pg_attribute_noreturn();
 void pglite_exit_thread(int code) pg_attribute_noreturn();
@@ -32,10 +34,13 @@ void pglite_tls_init_utils_misc_guc(void);
 // FS/IO:
 #define pglite_raw_mkdir(path,mode) mkdir(path,mode)
 #define pglite_raw_opendir(path) opendir(path)
+#define pglite_raw_stat(path,buf) stat(path,buf)
 #define pglite_raw_open(path,flags,mode) open(path,flags,mode)
 
 int pglite_mkdir(const char* path, mode_t mode);
 DIR* pglite_opendir(const char* path);
+
+int pglite_stat(const char* restrict path, struct stat* restrict buf);
 int pglite_open(const char* path, int flags, mode_t mode);
 
 #endif
