@@ -160,7 +160,7 @@ walkdir(const char *path,
 	DIR		   *dir;
 	struct dirent *de;
 
-	dir = opendir(path);
+	dir = pglite_opendir(path);
 	if (dir == NULL)
 	{
 		pg_log_error("could not open directory \"%s\": %m", path);
@@ -223,7 +223,7 @@ pre_sync_fname(const char *fname, bool isdir)
 {
 	int			fd;
 
-	fd = open(fname, O_RDONLY | PG_BINARY, 0);
+	fd = pglite_open(fname, O_RDONLY | PG_BINARY, 0);
 
 	if (fd < 0)
 	{
@@ -283,7 +283,7 @@ fsync_fname(const char *fname, bool isdir)
 	 * unsupported operations, e.g. opening a directory under Windows), and
 	 * logging others.
 	 */
-	fd = open(fname, flags, 0);
+	fd = pglite_open(fname, flags, 0);
 	if (fd < 0)
 	{
 		if (errno == EACCES || (isdir && errno == EISDIR))
@@ -357,7 +357,7 @@ durable_rename(const char *oldfile, const char *newfile)
 	if (fsync_fname(oldfile, false) != 0)
 		return -1;
 
-	fd = open(newfile, PG_BINARY | O_RDWR, 0);
+	fd = pglite_open(newfile, PG_BINARY | O_RDWR, 0);
 	if (fd < 0)
 	{
 		if (errno != ENOENT)

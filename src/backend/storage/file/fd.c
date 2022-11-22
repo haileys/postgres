@@ -1120,9 +1120,9 @@ tryAgain:
 					 "PG_O_DIRECT value collides with O_DSYNC");
 #endif
 
-	fd = open(fileName, fileFlags & ~PG_O_DIRECT, fileMode);
+	fd = pglite_open(fileName, fileFlags & ~PG_O_DIRECT, fileMode);
 #else
-	fd = open(fileName, fileFlags, fileMode);
+	fd = pglite_open(fileName, fileFlags, fileMode);
 #endif
 
 	if (fd >= 0)
@@ -2737,7 +2737,7 @@ AllocateDir(const char *dirname)
 	ReleaseLruFiles();
 
 TryAgain:
-	if ((dir = opendir(dirname)) != NULL)
+	if ((dir = pglite_opendir(dirname)) != NULL)
 	{
 		AllocateDesc *desc = &allocatedDescs[numAllocatedDescs];
 

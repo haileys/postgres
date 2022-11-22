@@ -2,6 +2,7 @@
 #define PGLITE_H
 
 #include <utils/elog.h>
+#include <dirent.h>
 
 void pglite_exit_thread(int code) pg_attribute_noreturn();
 
@@ -25,5 +26,12 @@ void pglite_tls_init_utils_activity_pgstat(void);
 void pglite_tls_init_utils_activity_wait_event(void);
 void pglite_tls_init_utils_cache_plancache(void);
 void pglite_tls_init_utils_misc_guc(void);
+
+// FS/IO:
+#define pglite_raw_opendir(path) opendir(path)
+#define pglite_raw_open(path,flags,mode) open(path,flags,mode)
+
+DIR* pglite_opendir(const char* path);
+int pglite_open(const char* path, int flags, mode_t mode);
 
 #endif
