@@ -49,18 +49,17 @@
  * file data is correct.
  */
 ControlFileData *
-get_controlfile(const char *DataDir, bool *crc_ok_p)
+get_controlfile(const char *UnusedDataDir, bool *crc_ok_p)
 {
 	ControlFileData *ControlFile;
 	int			fd;
-	char		ControlFilePath[MAXPGPATH];
+	const char  ControlFilePath[] = "global/pg_control";
 	pg_crc32c	crc;
 	int			r;
 
 	AssertArg(crc_ok_p);
 
 	ControlFile = palloc(sizeof(ControlFileData));
-	snprintf(ControlFilePath, MAXPGPATH, "%s/global/pg_control", DataDir);
 
 #ifndef FRONTEND
 	if ((fd = OpenTransientFile(ControlFilePath, O_RDONLY | PG_BINARY)) == -1)
@@ -69,7 +68,7 @@ get_controlfile(const char *DataDir, bool *crc_ok_p)
 				 errmsg("could not open file \"%s\" for reading: %m",
 						ControlFilePath)));
 #else
-	if ((fd = pglite_raw_open(ControlFilePath, O_RDONLY | PG_BINARY, 0)) == -1)
+	if ((fd = pglite_open(ControlFilePath, O_RDONLY | PG_BINARY, 0)) == -1)
 		pg_fatal("could not open file \"%s\" for reading: %m",
 				 ControlFilePath);
 #endif
@@ -142,12 +141,12 @@ get_controlfile(const char *DataDir, bool *crc_ok_p)
  * routine in the backend.
  */
 void
-update_controlfile(const char *DataDir,
+update_controlfile(const char *UnusedDataDir,
 				   ControlFileData *ControlFile, bool do_sync)
 {
 	int			fd;
 	char		buffer[PG_CONTROL_FILE_SIZE];
-	char		ControlFilePath[MAXPGPATH];
+	char		ControlFilePath[] = XLOG_CONTROL_FILE;
 
 	/*
 	 * Apply the same static assertions as in backend's WriteControlFile().
@@ -175,8 +174,6 @@ update_controlfile(const char *DataDir,
 	memset(buffer, 0, PG_CONTROL_FILE_SIZE);
 	memcpy(buffer, ControlFile, sizeof(ControlFileData));
 
-	snprintf(ControlFilePath, sizeof(ControlFilePath), "%s/%s", DataDir, XLOG_CONTROL_FILE);
-
 #ifndef FRONTEND
 
 	/*
@@ -189,7 +186,7 @@ update_controlfile(const char *DataDir,
 				 errmsg("could not open file \"%s\": %m",
 						ControlFilePath)));
 #else
-	if ((fd = pglite_raw_open(ControlFilePath, O_WRONLY | PG_BINARY,
+	if ((fd = pglite_open(ControlFilePath, O_WRONLY | PG_BINARY,
 				   pg_file_create_mode)) == -1)
 		pg_fatal("could not open file \"%s\": %m", ControlFilePath);
 #endif
