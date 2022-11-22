@@ -540,7 +540,7 @@ extern int	pg_mkdir_p(char *path, int omode);
 
 /* port/pqsignal.c */
 typedef void (*pqsigfunc) (int signo);
-extern pqsigfunc pqsignal(int signo, pqsigfunc func);
+extern void pqsignal(int signo, pqsigfunc func);
 
 /* port/quotes.c */
 extern char *escape_single_quotes_ascii(const char *src);
