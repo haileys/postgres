@@ -1488,7 +1488,7 @@ PostmasterMain(int argc, char *argv[])
 	 */
 	ExitPostmaster(status != STATUS_OK);
 
-	abort();					/* not reached */
+	pglite_abort();					/* not reached */
 }
 
 
@@ -5086,7 +5086,7 @@ SubPostmasterMain(int argc, char *argv[])
 		SysLoggerMain(argc, argv);	/* does not return */
 	}
 
-	abort();					/* shouldn't get here */
+	pglite_abort();					/* shouldn't get here */
 }
 #endif							/* EXEC_BACKEND */
 

@@ -385,7 +385,7 @@ WalSndShutdown(void)
 		whereToSendOutput = DestNone;
 
 	proc_exit(0);
-	abort();					/* keep the compiler quiet */
+	pglite_abort();					/* keep the compiler quiet */
 }
 
 /*

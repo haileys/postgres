@@ -645,7 +645,7 @@ errfinish(const char *filename, int lineno, const char *funcname)
 		 */
 		fflush(stdout);
 		fflush(stderr);
-		abort();
+		pglite_abort();
 	}
 
 	/*

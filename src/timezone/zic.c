@@ -796,7 +796,7 @@ main(int argc, char **argv)
 		else if (strcmp(bloat_default, "fat") == 0)
 			bloat = 1;
 		else
-			abort();			/* Configuration error.  */
+			pglite_abort();			/* Configuration error.  */
 	}
 	if (directory == NULL)
 		directory = "data";

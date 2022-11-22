@@ -335,7 +335,7 @@ BootstrapModeMain(int argc, char *argv[], bool check_only)
 	{
 		SetProcessingMode(NormalProcessing);
 		CheckerModeMain();
-		abort();
+		pglite_abort();
 	}
 
 	/*
