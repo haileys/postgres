@@ -56,8 +56,9 @@ extern int	MaxLivePostmasterChildren(void);
 extern bool PostmasterMarkPIDForWorkerNotify(int);
 
 #ifdef EXEC_BACKEND
+struct BackendParameters;
 extern pid_t postmaster_forkexec(int argc, char *argv[]);
-extern void SubPostmasterMain(int argc, char *argv[]) pg_attribute_noreturn();
+extern void SubPostmasterStart(struct BackendParameters* params);
 
 extern Size ShmemBackendArraySize(void);
 extern void ShmemBackendArrayAllocation(void);

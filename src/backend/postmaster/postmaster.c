@@ -4524,7 +4524,7 @@ retry:
  * subprocess FooMain() routine.
  */
 void
-SubPostmasterMain(int argc, char *argv[])
+SubPostmasterStart(BackendParameters* params)
 {
 	Port		port;
 
@@ -4535,16 +4535,12 @@ SubPostmasterMain(int argc, char *argv[])
 	/* Setup essential subsystems (to ensure elog() behaves sanely) */
 	InitializeGUCOptions();
 
-	/* Check we got appropriate args */
-	if (argc < 3)
-		elog(FATAL, "invalid subpostmaster invocation");
-
-	/* Read in the variables file */
+	/* Restore variables from params */
 	memset(&port, 0, sizeof(Port));
-	read_backend_variables(argv[2], &port);
+	restore_backend_variables(params, &port);
 
 	/* Close the postmaster's sockets (as soon as we know them) */
-	ClosePostmasterPorts(strcmp(argv[1], "--forklog") == 0);
+	ClosePostmasterPorts(false);
 
 	/* Setup as postmaster child */
 	InitPostmasterChild();
@@ -4565,20 +4561,13 @@ SubPostmasterMain(int argc, char *argv[])
 	 * sometimes impossible to attach to shared memory at the desired address.
 	 * Return the setting to its old value (usually '1' or '2') when finished.
 	 */
-	if (strcmp(argv[1], "--forkbackend") == 0 ||
-		strcmp(argv[1], "--forkavlauncher") == 0 ||
-		strcmp(argv[1], "--forkavworker") == 0 ||
-		strcmp(argv[1], "--forkaux") == 0 ||
-		strncmp(argv[1], "--forkbgworker=", 15) == 0)
-		PGSharedMemoryReAttach();
-	else
-		PGSharedMemoryNoReAttach();
+	PGSharedMemoryReAttach();
 
 	/* autovacuum needs this set before calling InitProcess */
-	if (strcmp(argv[1], "--forkavlauncher") == 0)
-		AutovacuumLauncherIAm();
-	if (strcmp(argv[1], "--forkavworker") == 0)
-		AutovacuumWorkerIAm();
+	// if (strcmp(argv[1], "--forkavlauncher") == 0)
+	// 	AutovacuumLauncherIAm();
+	// if (strcmp(argv[1], "--forkavworker") == 0)
+	// 	AutovacuumWorkerIAm();
 
 	/* Read in remaining GUC variables */
 	read_nondefault_variables();
@@ -4604,12 +4593,12 @@ SubPostmasterMain(int argc, char *argv[])
 	 * non-EXEC_BACKEND behavior.
 	 */
 	process_shared_preload_libraries();
+};
 
+#if 0
 	/* Run backend or appropriate child */
-	if (strcmp(argv[1], "--forkbackend") == 0)
+	if (true /*strcmp(argv[1], "--forkbackend") == 0*/)
 	{
-		Assert(argc == 3);		/* shouldn't be any more args */
-
 		/*
 		 * Need to reinitialize the SSL library in the backend, since the
 		 * context structures contain function pointers and cannot be passed
@@ -4656,7 +4645,7 @@ SubPostmasterMain(int argc, char *argv[])
 		/* And run the backend */
 		BackendRun(&port);		/* does not return */
 	}
-	if (strcmp(argv[1], "--forkaux") == 0)
+	if (false /*strcmp(argv[1], "--forkaux") == 0*/)
 	{
 		AuxProcType auxtype;
 
@@ -4671,10 +4660,11 @@ SubPostmasterMain(int argc, char *argv[])
 		/* Attach process to shared data structures */
 		CreateSharedMemoryAndSemaphores();
 
-		auxtype = atoi(argv[3]);
-		AuxiliaryProcessMain(auxtype);	/* does not return */
+		// TODO: pglite
+		// auxtype = atoi(argv[3]);
+		// AuxiliaryProcessMain(auxtype);	/* does not return */
 	}
-	if (strcmp(argv[1], "--forkavlauncher") == 0)
+	if (false /*strcmp(argv[1], "--forkavlauncher") == 0*/)
 	{
 		/* Restore basic shared memory pointers */
 		InitShmemAccess(UsedShmemSegAddr);
@@ -4685,9 +4675,10 @@ SubPostmasterMain(int argc, char *argv[])
 		/* Attach process to shared data structures */
 		CreateSharedMemoryAndSemaphores();
 
-		AutoVacLauncherMain(argc - 2, argv + 2);	/* does not return */
+		// TODO: pglite
+		// AutoVacLauncherMain(argc - 2, argv + 2);	/* does not return */
 	}
-	if (strcmp(argv[1], "--forkavworker") == 0)
+	if (false /*strcmp(argv[1], "--forkavworker") == 0*/)
 	{
 		/* Restore basic shared memory pointers */
 		InitShmemAccess(UsedShmemSegAddr);
@@ -4698,9 +4689,10 @@ SubPostmasterMain(int argc, char *argv[])
 		/* Attach process to shared data structures */
 		CreateSharedMemoryAndSemaphores();
 
-		AutoVacWorkerMain(argc - 2, argv + 2);	/* does not return */
+		// TODO: pglite
+		// AutoVacWorkerMain(argc - 2, argv + 2);	/* does not return */
 	}
-	if (strncmp(argv[1], "--forkbgworker=", 15) == 0)
+	if (false /*strncmp(argv[1], "--forkbgworker=", 15) == 0*/)
 	{
 		int			shmem_slot;
 
@@ -4717,20 +4709,23 @@ SubPostmasterMain(int argc, char *argv[])
 		CreateSharedMemoryAndSemaphores();
 
 		/* Fetch MyBgworkerEntry from shared memory */
-		shmem_slot = atoi(argv[1] + 15);
-		MyBgworkerEntry = BackgroundWorkerEntry(shmem_slot);
+		// TODO: pglite
+		// shmem_slot = atoi(argv[1] + 15);
+		// MyBgworkerEntry = BackgroundWorkerEntry(shmem_slot);
 
 		StartBackgroundWorker();
 	}
-	if (strcmp(argv[1], "--forklog") == 0)
+	if (false /*strcmp(argv[1], "--forklog") == 0*/)
 	{
 		/* Do not want to attach to shared memory */
 
-		SysLoggerMain(argc, argv);	/* does not return */
+		// TODO: pglite
+		// SysLoggerMain(argc, argv);	/* does not return */
 	}
 
 	pglite_abort();					/* shouldn't get here */
 }
+#endif /* 0 */
 #endif							/* EXEC_BACKEND */
 
 
@@ -5850,77 +5845,6 @@ read_inheritable_socket(SOCKET *dest, InheritableSocket *src)
 	}
 }
 #endif
-
-static void
-read_backend_variables(char *id, Port *port)
-{
-	BackendParameters param;
-
-#ifndef WIN32
-	/* Non-win32 implementation reads from file */
-	FILE	   *fp;
-
-	/* Open file */
-	fp = AllocateFile(id, PG_BINARY_R);
-	if (!fp)
-	{
-		write_stderr("could not open backend variables file \"%s\": %s\n",
-					 id, strerror(errno));
-		pglite_exit_thread(1);
-	}
-
-	if (fread(&param, sizeof(param), 1, fp) != 1)
-	{
-		write_stderr("could not read from backend variables file \"%s\": %s\n",
-					 id, strerror(errno));
-		pglite_exit_thread(1);
-	}
-
-	/* Release file */
-	FreeFile(fp);
-	if (unlink(id) != 0)
-	{
-		write_stderr("could not remove file \"%s\": %s\n",
-					 id, strerror(errno));
-		pglite_exit_thread(1);
-	}
-#else
-	/* Win32 version uses mapped file */
-	HANDLE		paramHandle;
-	BackendParameters *paramp;
-
-#ifdef _WIN64
-	paramHandle = (HANDLE) _atoi64(id);
-#else
-	paramHandle = (HANDLE) atol(id);
-#endif
-	paramp = MapViewOfFile(paramHandle, FILE_MAP_READ, 0, 0, 0);
-	if (!paramp)
-	{
-		write_stderr("could not map view of backend variables: error code %lu\n",
-					 GetLastError());
-		pglite_exit_thread(1);
-	}
-
-	memcpy(&param, paramp, sizeof(BackendParameters));
-
-	if (!UnmapViewOfFile(paramp))
-	{
-		write_stderr("could not unmap view of backend variables: error code %lu\n",
-					 GetLastError());
-		pglite_exit_thread(1);
-	}
-
-	if (!CloseHandle(paramHandle))
-	{
-		write_stderr("could not close handle to backend parameter variables: error code %lu\n",
-					 GetLastError());
-		pglite_exit_thread(1);
-	}
-#endif
-
-	restore_backend_variables(&param, port);
-}
 
 /* Restore critical backend variables from the BackendParameters struct */
 static void
