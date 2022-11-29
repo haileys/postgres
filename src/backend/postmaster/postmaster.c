@@ -224,10 +224,6 @@ char	   *ListenAddresses;
  */
 int			ReservedBackends;
 
-/* The socket(s) we're listening to. */
-#define MAXLISTEN	64
-static pgsocket ListenSocket[MAXLISTEN];
-
 /*
  * These globals control the behavior of the postmaster in case some
  * backend dumps core.  Normally, it kills all peers of the dead backend
@@ -491,7 +487,6 @@ typedef struct
 	Port		port;
 	InheritableSocket portsocket;
 	char		DataDir[MAXPGPATH];
-	pgsocket	ListenSocket[MAXLISTEN];
 	int32		MyCancelKey;
 	int			MyPMChildSlot;
 #ifndef WIN32
@@ -1195,181 +1190,7 @@ PostmasterMain(int argc, char *argv[])
 	ereport(LOG,
 			(errmsg("starting %s", PG_VERSION_STR)));
 
-	/*
-	 * Establish input sockets.
-	 *
-	 * First, mark them all closed, and set up an on_proc_exit function that's
-	 * charged with closing the sockets again at postmaster shutdown.
-	 */
-	for (i = 0; i < MAXLISTEN; i++)
-		ListenSocket[i] = PGINVALID_SOCKET;
-
 	on_proc_exit(CloseServerPorts, 0);
-
-	if (ListenAddresses)
-	{
-		char	   *rawstring;
-		List	   *elemlist;
-		ListCell   *l;
-		int			success = 0;
-
-		/* Need a modifiable copy of ListenAddresses */
-		rawstring = pstrdup(ListenAddresses);
-
-		/* Parse string into list of hostnames */
-		if (!SplitGUCList(rawstring, ',', &elemlist))
-		{
-			/* syntax error in list */
-			ereport(FATAL,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("invalid list syntax in parameter \"%s\"",
-							"listen_addresses")));
-		}
-
-		foreach(l, elemlist)
-		{
-			char	   *curhost = (char *) lfirst(l);
-
-			if (strcmp(curhost, "*") == 0)
-				status = StreamServerPort(AF_UNSPEC, NULL,
-										  (unsigned short) PostPortNumber,
-										  NULL,
-										  ListenSocket, MAXLISTEN);
-			else
-				status = StreamServerPort(AF_UNSPEC, curhost,
-										  (unsigned short) PostPortNumber,
-										  NULL,
-										  ListenSocket, MAXLISTEN);
-
-			if (status == STATUS_OK)
-			{
-				success++;
-				/* record the first successful host addr in lockfile */
-				if (!listen_addr_saved)
-				{
-					AddToDataDirLockFile(LOCK_FILE_LINE_LISTEN_ADDR, curhost);
-					listen_addr_saved = true;
-				}
-			}
-			else
-				ereport(WARNING,
-						(errmsg("could not create listen socket for \"%s\"",
-								curhost)));
-		}
-
-		if (!success && elemlist != NIL)
-			ereport(FATAL,
-					(errmsg("could not create any TCP/IP sockets")));
-
-		list_free(elemlist);
-		pfree(rawstring);
-	}
-
-#ifdef USE_BONJOUR
-	/* Register for Bonjour only if we opened TCP socket(s) */
-	if (enable_bonjour && ListenSocket[0] != PGINVALID_SOCKET)
-	{
-		DNSServiceErrorType err;
-
-		/*
-		 * We pass 0 for interface_index, which will result in registering on
-		 * all "applicable" interfaces.  It's not entirely clear from the
-		 * DNS-SD docs whether this would be appropriate if we have bound to
-		 * just a subset of the available network interfaces.
-		 */
-		err = DNSServiceRegister(&bonjour_sdref,
-								 0,
-								 0,
-								 bonjour_name,
-								 "_postgresql._tcp.",
-								 NULL,
-								 NULL,
-								 pg_hton16(PostPortNumber),
-								 0,
-								 NULL,
-								 NULL,
-								 NULL);
-		if (err != kDNSServiceErr_NoError)
-			ereport(LOG,
-					(errmsg("DNSServiceRegister() failed: error code %ld",
-							(long) err)));
-
-		/*
-		 * We don't bother to read the mDNS daemon's reply, and we expect that
-		 * it will automatically terminate our registration when the socket is
-		 * closed at postmaster termination.  So there's nothing more to be
-		 * done here.  However, the bonjour_sdref is kept around so that
-		 * forked children can close their copies of the socket.
-		 */
-	}
-#endif
-
-#ifdef HAVE_UNIX_SOCKETS
-	if (Unix_socket_directories)
-	{
-		char	   *rawstring;
-		List	   *elemlist;
-		ListCell   *l;
-		int			success = 0;
-
-		/* Need a modifiable copy of Unix_socket_directories */
-		rawstring = pstrdup(Unix_socket_directories);
-
-		/* Parse string into list of directories */
-		if (!SplitDirectoriesString(rawstring, ',', &elemlist))
-		{
-			/* syntax error in list */
-			ereport(FATAL,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("invalid list syntax in parameter \"%s\"",
-							"unix_socket_directories")));
-		}
-
-		foreach(l, elemlist)
-		{
-			char	   *socketdir = (char *) lfirst(l);
-
-			status = StreamServerPort(AF_UNIX, NULL,
-									  (unsigned short) PostPortNumber,
-									  socketdir,
-									  ListenSocket, MAXLISTEN);
-
-			if (status == STATUS_OK)
-			{
-				success++;
-				/* record the first successful Unix socket in lockfile */
-				if (success == 1)
-					AddToDataDirLockFile(LOCK_FILE_LINE_SOCKET_DIR, socketdir);
-			}
-			else
-				ereport(WARNING,
-						(errmsg("could not create Unix-domain socket in directory \"%s\"",
-								socketdir)));
-		}
-
-		if (!success && elemlist != NIL)
-			ereport(FATAL,
-					(errmsg("could not create any Unix-domain sockets")));
-
-		list_free_deep(elemlist);
-		pfree(rawstring);
-	}
-#endif
-
-	/*
-	 * check that we have some socket to listen on
-	 */
-	if (ListenSocket[0] == PGINVALID_SOCKET)
-		ereport(FATAL,
-				(errmsg("no socket created for listening")));
-
-	/*
-	 * If no valid TCP ports, write an empty line for listen address,
-	 * indicating the Unix socket must be used.  Note that this line is not
-	 * added to the lock file until there is a socket backing it.
-	 */
-	if (!listen_addr_saved)
-		AddToDataDirLockFile(LOCK_FILE_LINE_LISTEN_ADDR, "");
 
 	/*
 	 * Record postmaster options.  We delay this till now to avoid recording
@@ -1498,34 +1319,6 @@ PostmasterMain(int argc, char *argv[])
 static void
 CloseServerPorts(int status, Datum arg)
 {
-	int			i;
-
-	/*
-	 * First, explicitly close all the socket FDs.  We used to just let this
-	 * happen implicitly at postmaster exit, but it's better to close them
-	 * before we remove the postmaster.pid lockfile; otherwise there's a race
-	 * condition if a new postmaster wants to re-use the TCP port number.
-	 */
-	for (i = 0; i < MAXLISTEN; i++)
-	{
-		if (ListenSocket[i] != PGINVALID_SOCKET)
-		{
-			StreamClose(ListenSocket[i]);
-			ListenSocket[i] = PGINVALID_SOCKET;
-		}
-	}
-
-	/*
-	 * Next, remove any filesystem entries for Unix sockets.  To avoid race
-	 * conditions against incoming postmasters, this must happen after closing
-	 * the sockets and before removing lock files.
-	 */
-	RemoveSocketFiles();
-
-	/*
-	 * We don't do anything about socket lock files here; those will be
-	 * removed in a later on_proc_exit callback.
-	 */
 }
 
 /*
@@ -1790,38 +1583,6 @@ ServerLoop(void)
 			}
 		}
 
-		/*
-		 * New connection pending on any of our sockets? If so, fork a child
-		 * process to deal with it.
-		 */
-		if (selres > 0)
-		{
-			int			i;
-
-			for (i = 0; i < MAXLISTEN; i++)
-			{
-				if (ListenSocket[i] == PGINVALID_SOCKET)
-					break;
-				if (FD_ISSET(ListenSocket[i], &rmask))
-				{
-					Port	   *port;
-
-					port = ConnCreate(ListenSocket[i]);
-					if (port)
-					{
-						BackendStartup(port);
-
-						/*
-						 * We no longer need the open socket or port structure
-						 * in this process
-						 */
-						StreamClose(port->sock);
-						ConnFree(port);
-					}
-				}
-			}
-		}
-
 		/* If we have lost the log collector, try to start a new one */
 		if (SysLoggerPID == 0 && Logging_collector)
 			SysLoggerPID = SysLogger_Start();
@@ -1964,24 +1725,6 @@ ServerLoop(void)
 static int
 initMasks(fd_set *rmask)
 {
-	int			maxsock = -1;
-	int			i;
-
-	FD_ZERO(rmask);
-
-	for (i = 0; i < MAXLISTEN; i++)
-	{
-		int			fd = ListenSocket[i];
-
-		if (fd == PGINVALID_SOCKET)
-			break;
-		FD_SET(fd, rmask);
-
-		if (fd > maxsock)
-			maxsock = fd;
-	}
-
-	return maxsock + 1;
 }
 
 
@@ -2646,19 +2389,6 @@ ClosePostmasterPorts(bool am_syslogger)
 	/* Notify fd.c that we released one pipe FD. */
 	ReleaseExternalFD();
 #endif
-
-	/*
-	 * Close the postmaster's listen sockets.  These aren't tracked by fd.c,
-	 * so we don't call ReleaseExternalFD() here.
-	 */
-	for (i = 0; i < MAXLISTEN; i++)
-	{
-		if (ListenSocket[i] != PGINVALID_SOCKET)
-		{
-			StreamClose(ListenSocket[i]);
-			ListenSocket[i] = PGINVALID_SOCKET;
-		}
-	}
 
 	/*
 	 * If using syslogger, close the read side of the pipe.  We don't bother
@@ -6133,8 +5863,6 @@ save_backend_variables(BackendParameters *param, Port *port,
 
 	strlcpy(param->DataDir, DataDir, MAXPGPATH);
 
-	memcpy(&param->ListenSocket, &ListenSocket, sizeof(ListenSocket));
-
 	param->MyCancelKey = MyCancelKey;
 	param->MyPMChildSlot = MyPMChildSlot;
 
@@ -6365,8 +6093,6 @@ restore_backend_variables(BackendParameters *param, Port *port)
 	read_inheritable_socket(&port->sock, &param->portsocket);
 
 	SetDataDir(param->DataDir);
-
-	memcpy(&ListenSocket, &param->ListenSocket, sizeof(ListenSocket));
 
 	MyCancelKey = param->MyCancelKey;
 	MyPMChildSlot = param->MyPMChildSlot;
