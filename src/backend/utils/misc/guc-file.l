@@ -563,7 +563,7 @@ ParseConfigFile(const char *config_file, bool strict,
 				ConfigVariable **head_p,
 				ConfigVariable **tail_p)
 {
-	char	   *abs_path;
+	char	   *rel_path;
 	bool		OK = true;
 	FILE	   *fp;
 
@@ -600,7 +600,9 @@ ParseConfigFile(const char *config_file, bool strict,
 		return false;
 	}
 
-	abs_path = AbsoluteConfigLocation(config_file, calling_file);
+	// this is not quite the correct behaviour - upstream postgres treats
+	// config_file as relative to calling_file, this does not
+	rel_path = config_file;
 
 	/*
 	 * Reject direct recursion.  Indirect recursion is also possible, but it's
@@ -608,7 +610,7 @@ ParseConfigFile(const char *config_file, bool strict,
 	 * this step because the canonicalization done by AbsoluteConfigLocation
 	 * makes it more likely that a simple strcmp comparison will match.)
 	 */
-	if (calling_file && strcmp(abs_path, calling_file) == 0)
+	if (calling_file && strcmp(rel_path, calling_file) == 0)
 	{
 		ereport(elevel,
 				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
@@ -617,11 +619,10 @@ ParseConfigFile(const char *config_file, bool strict,
 		record_config_file_error("configuration file recursion",
 								 calling_file, calling_lineno,
 								 head_p, tail_p);
-		pfree(abs_path);
 		return false;
 	}
 
-	fp = AllocateFile(abs_path, "r");
+	fp = AllocateFile(rel_path, "r");
 	if (!fp)
 	{
 		if (strict)
@@ -629,9 +630,9 @@ ParseConfigFile(const char *config_file, bool strict,
 			ereport(elevel,
 					(errcode_for_file_access(),
 					 errmsg("could not open configuration file \"%s\": %m",
-							abs_path)));
+							rel_path)));
 			record_config_file_error(psprintf("could not open file \"%s\"",
-											  abs_path),
+											  rel_path),
 									 calling_file, calling_lineno,
 									 head_p, tail_p);
 			OK = false;
@@ -640,17 +641,16 @@ ParseConfigFile(const char *config_file, bool strict,
 		{
 			ereport(LOG,
 					(errmsg("skipping missing configuration file \"%s\"",
-							abs_path)));
+							rel_path)));
 		}
 		goto cleanup;
 	}
 
-	OK = ParseConfigFp(fp, abs_path, depth, elevel, head_p, tail_p);
+	OK = ParseConfigFp(fp, rel_path, depth, elevel, head_p, tail_p);
 
 cleanup:
 	if (fp)
 		FreeFile(fp);
-	pfree(abs_path);
 
 	return OK;
 }
