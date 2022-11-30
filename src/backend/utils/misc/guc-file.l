@@ -178,10 +178,10 @@ ProcessConfigFileInternal(GucContext context, bool applySettings, int elevel)
 	int			i;
 
 	/* Parse the main config file into a list of option names and values */
-	ConfFileWithError = ConfigFileName;
+	ConfFileWithError = CONFIG_FILENAME;
 	head = tail = NULL;
 
-	if (!ParseConfigFile(ConfigFileName, true,
+	if (!ParseConfigFile(CONFIG_FILENAME, true,
 						 NULL, 0, 0, elevel,
 						 &head, &tail))
 	{

@@ -651,7 +651,6 @@ int			temp_file_limit = -1;
 int			num_temp_buffers = 1024;
 
 char	   *cluster_name = "";
-char	   *ConfigFileName;
 char	   *HbaFileName;
 char	   *IdentFileName;
 char	   *external_pid_file;
@@ -697,7 +696,6 @@ static int	server_version_num;
 static char *timezone_string;
 static char *log_timezone_string;
 static char *timezone_abbreviations_string;
-static char *data_directory;
 static char *session_authorization_string;
 static int	max_function_args;
 static int	max_index_keys;
@@ -1013,7 +1011,7 @@ static const unit_conversion time_unit_conversion_table[] =
 static struct config_bool ConfigureNamesBool[102] = {};
 static struct config_int ConfigureNamesInt[127] = {};
 static struct config_real ConfigureNamesReal[26] = {};
-static struct config_string ConfigureNamesString[71] = {};
+static struct config_string ConfigureNamesString[69] = {};
 static struct config_enum ConfigureNamesEnum[37] = {};
 
 #define INIT_GUC_NAMES(name) \
@@ -4477,32 +4475,6 @@ struct config_string init_ConfigureNamesString[] =
 	},
 
 	{
-		/*
-		 * Can't be set by ALTER SYSTEM as it can lead to recursive definition
-		 * of data_directory.
-		 */
-		{"data_directory", PGC_POSTMASTER, FILE_LOCATIONS,
-			gettext_noop("Sets the server's data directory."),
-			NULL,
-			GUC_SUPERUSER_ONLY | GUC_DISALLOW_IN_AUTO_FILE
-		},
-		&data_directory,
-		NULL,
-		NULL, NULL, NULL
-	},
-
-	{
-		{"config_file", PGC_POSTMASTER, FILE_LOCATIONS,
-			gettext_noop("Sets the server's main configuration file."),
-			NULL,
-			GUC_DISALLOW_IN_FILE | GUC_SUPERUSER_ONLY
-		},
-		&ConfigFileName,
-		NULL,
-		NULL, NULL, NULL
-	},
-
-	{
 		{"hba_file", PGC_POSTMASTER, FILE_LOCATIONS,
 			gettext_noop("Sets the server's \"hba\" configuration file."),
 			NULL,
@@ -6117,23 +6089,18 @@ InitializeOneGUCOption(struct config_generic *gconf)
  * to stderr and returns false.
  */
 bool
-SelectConfigFiles(const char *userDoption, const char *progname)
+SelectConfigFiles(const char *data_dir, const char *progname)
 {
-	char	   *configdir;
 	char	   *fname;
 	struct stat stat_buf;
 
-	/* configdir is -D option, or $PGDATA if no -D */
-	if (userDoption)
-		configdir = make_absolute_path(userDoption);
-	else
-		configdir = make_absolute_path(getenv("PGDATA"));
+	SetDataDir(data_dir);
 
-	if (configdir && stat(configdir, &stat_buf) != 0)
+	if (pglite_stat(".", &stat_buf) != 0)
 	{
 		write_stderr("%s: could not access directory \"%s\": %s\n",
 					 progname,
-					 configdir,
+					 DataDir,
 					 strerror(errno));
 		if (errno == ENOENT)
 			write_stderr("Run initdb or pg_basebackup to initialize a PostgreSQL data directory.\n");
@@ -6141,43 +6108,12 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 	}
 
 	/*
-	 * Find the configuration file: if config_file was specified on the
-	 * command line, use it, else use configdir/postgresql.conf.  In any case
-	 * ensure the result is an absolute path, so that it will be interpreted
-	 * the same way by future backends.
-	 */
-	if (ConfigFileName)
-		fname = make_absolute_path(ConfigFileName);
-	else if (configdir)
-	{
-		fname = guc_malloc(FATAL,
-						   strlen(configdir) + strlen(CONFIG_FILENAME) + 2);
-		sprintf(fname, "%s/%s", configdir, CONFIG_FILENAME);
-	}
-	else
-	{
-		write_stderr("%s does not know where to find the server configuration file.\n"
-					 "You must specify the --config-file or -D invocation "
-					 "option or set the PGDATA environment variable.\n",
-					 progname);
-		return false;
-	}
-
-	/*
-	 * Set the ConfigFileName GUC variable to its final value, ensuring that
-	 * it can't be overridden later.
-	 */
-	SetConfigOption("config_file", fname, PGC_POSTMASTER, PGC_S_OVERRIDE);
-	free(fname);
-
-	/*
 	 * Now read the config file for the first time.
 	 */
-	if (pglite_stat(ConfigFileName, &stat_buf) != 0)
+	if (pglite_stat(CONFIG_FILENAME, &stat_buf) != 0)
 	{
 		write_stderr("%s: could not access the server configuration file \"%s\": %s\n",
-					 progname, ConfigFileName, strerror(errno));
-		free(configdir);
+					 progname, CONFIG_FILENAME, strerror(errno));
 		return false;
 	}
 
@@ -6185,45 +6121,6 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 	 * Read the configuration file for the first time.  This time only the
 	 * data_directory parameter is picked up to determine the data directory,
 	 * so that we can read the PG_AUTOCONF_FILENAME file next time.
-	 */
-	ProcessConfigFile(PGC_POSTMASTER);
-
-	/*
-	 * If the data_directory GUC variable has been set, use that as DataDir;
-	 * otherwise use configdir if set; else punt.
-	 *
-	 * Note: SetDataDir will copy and absolute-ize its argument, so we don't
-	 * have to.
-	 */
-	if (data_directory)
-		SetDataDir(data_directory);
-	else if (configdir)
-		SetDataDir(configdir);
-	else
-	{
-		write_stderr("%s does not know where to find the database system data.\n"
-					 "This can be specified as \"data_directory\" in \"%s\", "
-					 "or by the -D invocation option, or by the "
-					 "PGDATA environment variable.\n",
-					 progname, ConfigFileName);
-		return false;
-	}
-
-	/*
-	 * Reflect the final DataDir value back into the data_directory GUC var.
-	 * (If you are wondering why we don't just make them a single variable,
-	 * it's because the EXEC_BACKEND case needs DataDir to be transmitted to
-	 * child backends specially.  XXX is that still true?  Given that we now
-	 * chdir to DataDir, EXEC_BACKEND can read the config file without knowing
-	 * DataDir in advance.)
-	 */
-	SetConfigOption("data_directory", DataDir, PGC_POSTMASTER, PGC_S_OVERRIDE);
-
-	/*
-	 * Now read the config file a second time, allowing any settings in the
-	 * PG_AUTOCONF_FILENAME file to take effect.  (This is pretty ugly, but
-	 * since we have to determine the DataDir before we can find the autoconf
-	 * file, the alternatives seem worse.)
 	 */
 	ProcessConfigFile(PGC_POSTMASTER);
 
@@ -6241,11 +6138,11 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 	 */
 	if (HbaFileName)
 		fname = make_absolute_path(HbaFileName);
-	else if (configdir)
+	else if (DataDir)
 	{
 		fname = guc_malloc(FATAL,
-						   strlen(configdir) + strlen(HBA_FILENAME) + 2);
-		sprintf(fname, "%s/%s", configdir, HBA_FILENAME);
+						   strlen(DataDir) + strlen(HBA_FILENAME) + 2);
+		sprintf(fname, "%s/%s", DataDir, HBA_FILENAME);
 	}
 	else
 	{
@@ -6253,7 +6150,7 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 					 "This can be specified as \"hba_file\" in \"%s\", "
 					 "or by the -D invocation option, or by the "
 					 "PGDATA environment variable.\n",
-					 progname, ConfigFileName);
+					 progname, CONFIG_FILENAME);
 		return false;
 	}
 	SetConfigOption("hba_file", fname, PGC_POSTMASTER, PGC_S_OVERRIDE);
@@ -6264,11 +6161,11 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 	 */
 	if (IdentFileName)
 		fname = make_absolute_path(IdentFileName);
-	else if (configdir)
+	else if (DataDir)
 	{
 		fname = guc_malloc(FATAL,
-						   strlen(configdir) + strlen(IDENT_FILENAME) + 2);
-		sprintf(fname, "%s/%s", configdir, IDENT_FILENAME);
+						   strlen(DataDir) + strlen(IDENT_FILENAME) + 2);
+		sprintf(fname, "%s/%s", DataDir, IDENT_FILENAME);
 	}
 	else
 	{
@@ -6276,13 +6173,11 @@ SelectConfigFiles(const char *userDoption, const char *progname)
 					 "This can be specified as \"ident_file\" in \"%s\", "
 					 "or by the -D invocation option, or by the "
 					 "PGDATA environment variable.\n",
-					 progname, ConfigFileName);
+					 progname, CONFIG_FILENAME);
 		return false;
 	}
 	SetConfigOption("ident_file", fname, PGC_POSTMASTER, PGC_S_OVERRIDE);
 	free(fname);
-
-	free(configdir);
 
 	return true;
 }

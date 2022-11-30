@@ -276,7 +276,6 @@ extern PGDLLIMPORT int temp_file_limit;
 extern PGDLLIMPORT int num_temp_buffers;
 
 extern PGDLLIMPORT char *cluster_name;
-extern PGDLLIMPORT char *ConfigFileName;
 extern PGDLLIMPORT char *HbaFileName;
 extern PGDLLIMPORT char *IdentFileName;
 extern PGDLLIMPORT char *external_pid_file;
