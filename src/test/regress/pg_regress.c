@@ -350,7 +350,7 @@ make_temp_sockdir(void)
 	snprintf(socklock, sizeof(socklock), "%s.lock", sockself);
 
 	/* Remove the directory during clean exit. */
-	atexit(remove_temp);
+	pglite_atexit(remove_temp);
 
 	/*
 	 * Remove the directory before dying to the usual signals.  Omit SIGQUIT,
@@ -2069,7 +2069,7 @@ regression_main(int argc, char *argv[],
 
 	get_restricted_token();
 
-	atexit(stop_postmaster);
+	pglite_atexit(stop_postmaster);
 
 #if !defined(HAVE_UNIX_SOCKETS)
 	use_unix_sockets = false;

@@ -280,7 +280,7 @@ main(int argc, char **argv)
 
 	getRestoreCommand(argv[0]);
 
-	atexit(disconnect_atexit);
+	pglite_atexit(disconnect_atexit);
 
 	/*
 	 * Ok, we have all the options and we're ready to start. First, connect to

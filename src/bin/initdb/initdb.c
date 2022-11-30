@@ -3046,7 +3046,7 @@ main(int argc, char *argv[])
 		pg_fatal("%s cannot be specified unless locale provider \"%s\" is chosen",
 				 "--icu-locale", "icu");
 
-	atexit(cleanup_directories_atexit);
+	pglite_atexit(cleanup_directories_atexit);
 
 	/* If we only need to fsync, just do it and exit */
 	if (sync_only)

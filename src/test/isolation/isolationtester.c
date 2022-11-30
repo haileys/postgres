@@ -150,7 +150,7 @@ main(int argc, char **argv)
 	 */
 	nconns = 1 + testspec->nsessions;
 	conns = (IsoConnInfo *) pg_malloc0(nconns * sizeof(IsoConnInfo));
-	atexit(disconnect_atexit);
+	pglite_atexit(disconnect_atexit);
 
 	for (i = 0; i < nconns; i++)
 	{

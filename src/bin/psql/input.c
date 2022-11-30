@@ -398,7 +398,7 @@ initializeInput(int flags)
 	}
 #endif
 
-	atexit(finishInput);
+	pglite_atexit(finishInput);
 }
 
 

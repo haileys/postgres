@@ -9,6 +9,7 @@
 
 void pglite_abort() pg_attribute_noreturn();
 void pglite_exit_thread(int code) pg_attribute_noreturn();
+void pglite_atexit(void(*function)(void));
 
 void pglite_log(ErrorData* edata, const char* backend);
 

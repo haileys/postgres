@@ -898,7 +898,7 @@ main(int argc, char **argv)
 	if (!conn)
 		/* error message already written in GetConnection() */
 		exit(1);
-	atexit(disconnect_atexit);
+	pglite_atexit(disconnect_atexit);
 
 	/*
 	 * Trap signals.  (Don't do this until after the initial password prompt,

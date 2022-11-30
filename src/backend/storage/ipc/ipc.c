@@ -316,7 +316,7 @@ on_proc_exit(pg_on_exit_callback function, Datum arg)
 
 	if (!atexit_callback_setup)
 	{
-		atexit(atexit_callback);
+		pglite_atexit(atexit_callback);
 		atexit_callback_setup = true;
 	}
 }
@@ -344,7 +344,7 @@ before_shmem_exit(pg_on_exit_callback function, Datum arg)
 
 	if (!atexit_callback_setup)
 	{
-		atexit(atexit_callback);
+		pglite_atexit(atexit_callback);
 		atexit_callback_setup = true;
 	}
 }
@@ -372,7 +372,7 @@ on_shmem_exit(pg_on_exit_callback function, Datum arg)
 
 	if (!atexit_callback_setup)
 	{
-		atexit(atexit_callback);
+		pglite_atexit(atexit_callback);
 		atexit_callback_setup = true;
 	}
 }

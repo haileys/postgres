@@ -713,7 +713,7 @@ StartLogStreamer(char *startpos, uint32 timeline, char *sysidentifier,
 	/*
 	 * Else we are in the parent process and all is well.
 	 */
-	atexit(kill_bgchild_atexit);
+	pglite_atexit(kill_bgchild_atexit);
 #else							/* WIN32 */
 	bgchild = _beginthreadex(NULL, 0, (void *) LogStreamerMain, param, 0, NULL);
 	if (bgchild == 0)
@@ -2339,7 +2339,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	atexit(cleanup_directories_atexit);
+	pglite_atexit(cleanup_directories_atexit);
 
 	while ((c = getopt_long(argc, argv, "CD:F:r:RS:t:T:X:l:nNzZ:d:c:h:p:U:s:wWkvP",
 							long_options, &option_index)) != -1)
@@ -2723,7 +2723,7 @@ main(int argc, char **argv)
 		/* Error message already written in GetConnection() */
 		exit(1);
 	}
-	atexit(disconnect_atexit);
+	pglite_atexit(disconnect_atexit);
 
 #ifndef WIN32
 

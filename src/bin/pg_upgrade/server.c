@@ -206,7 +206,7 @@ start_postmaster(ClusterInfo *cluster, bool report_and_exit_on_error)
 
 	if (!exit_hook_registered)
 	{
-		atexit(stop_postmaster_atexit);
+		pglite_atexit(stop_postmaster_atexit);
 		exit_hook_registered = true;
 	}
 
