@@ -6137,12 +6137,10 @@ SelectConfigFiles(const char *data_dir, const char *progname)
 	 * Figure out where pg_hba.conf is, and make sure the path is absolute.
 	 */
 	if (HbaFileName)
-		fname = make_absolute_path(HbaFileName);
+		fname = pstrdup(HbaFileName);
 	else if (DataDir)
 	{
-		fname = guc_malloc(FATAL,
-						   strlen(DataDir) + strlen(HBA_FILENAME) + 2);
-		sprintf(fname, "%s/%s", DataDir, HBA_FILENAME);
+		fname = pstrdup(HBA_FILENAME);
 	}
 	else
 	{
@@ -6154,18 +6152,16 @@ SelectConfigFiles(const char *data_dir, const char *progname)
 		return false;
 	}
 	SetConfigOption("hba_file", fname, PGC_POSTMASTER, PGC_S_OVERRIDE);
-	free(fname);
+	pfree(fname);
 
 	/*
 	 * Likewise for pg_ident.conf.
 	 */
 	if (IdentFileName)
-		fname = make_absolute_path(IdentFileName);
+		fname = pstrdup(IdentFileName);
 	else if (DataDir)
 	{
-		fname = guc_malloc(FATAL,
-						   strlen(DataDir) + strlen(IDENT_FILENAME) + 2);
-		sprintf(fname, "%s/%s", DataDir, IDENT_FILENAME);
+		fname = pstrdup(IDENT_FILENAME);
 	}
 	else
 	{
@@ -6177,7 +6173,7 @@ SelectConfigFiles(const char *data_dir, const char *progname)
 		return false;
 	}
 	SetConfigOption("ident_file", fname, PGC_POSTMASTER, PGC_S_OVERRIDE);
-	free(fname);
+	pfree(fname);
 
 	return true;
 }
