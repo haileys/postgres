@@ -2457,8 +2457,8 @@ reserveAllocatedDesc(void)
  *
  * Ideally this should be the *only* direct call of fopen() in the backend.
  */
-FILE *
-AllocateFile(const char *name, const char *mode)
+static FILE *
+AllocateFileImpl(const char *name, const char *mode, FILE*(*openfn)(const char*, const char*))
 {
 	FILE	   *file;
 
@@ -2476,7 +2476,7 @@ AllocateFile(const char *name, const char *mode)
 	ReleaseLruFiles();
 
 TryAgain:
-	if ((file = fopen(name, mode)) != NULL)
+	if ((file = openfn(name, mode)) != NULL)
 	{
 		AllocateDesc *desc = &allocatedDescs[numAllocatedDescs];
 
@@ -2501,6 +2501,18 @@ TryAgain:
 	}
 
 	return NULL;
+}
+
+FILE *
+AllocateFile(const char *name, const char *mode)
+{
+	return AllocateFileImpl(name, mode, pglite_fopen);
+}
+
+FILE *
+AllocateFileRaw(const char *name, const char *mode)
+{
+	return AllocateFileImpl(name, mode, fopen);
 }
 
 /*
@@ -2718,8 +2730,8 @@ CloseTransientFile(int fd)
  *
  * Ideally this should be the *only* direct call of opendir() in the backend.
  */
-DIR *
-AllocateDir(const char *dirname)
+static DIR *
+AllocateDirImpl(const char *dirname, DIR*(*openfn)(const char*))
 {
 	DIR		   *dir;
 
@@ -2737,7 +2749,7 @@ AllocateDir(const char *dirname)
 	ReleaseLruFiles();
 
 TryAgain:
-	if ((dir = pglite_opendir(dirname)) != NULL)
+	if ((dir = openfn(dirname)) != NULL)
 	{
 		AllocateDesc *desc = &allocatedDescs[numAllocatedDescs];
 
@@ -2762,6 +2774,18 @@ TryAgain:
 	}
 
 	return NULL;
+}
+
+DIR *
+AllocateDir(const char *dirname)
+{
+	return AllocateDirImpl(dirname, pglite_opendir);
+}
+
+DIR *
+AllocateDirRaw(const char *dirname)
+{
+	return AllocateDirImpl(dirname, opendir);
 }
 
 /*

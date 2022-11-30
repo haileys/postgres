@@ -126,6 +126,7 @@ extern void TempTablespacePath(char *path, Oid tablespace);
 
 /* Operations that allow use of regular stdio --- USE WITH CAUTION */
 extern FILE *AllocateFile(const char *name, const char *mode);
+extern FILE *AllocateFileRaw(const char *name, const char *mode);
 extern int	FreeFile(FILE *file);
 
 /* Operations that allow use of pipe streams (popen/pclose) */
@@ -134,6 +135,7 @@ extern int	ClosePipeStream(FILE *file);
 
 /* Operations to allow use of the <dirent.h> library routines */
 extern DIR *AllocateDir(const char *dirname);
+extern DIR *AllocateDirRaw(const char *dirname);
 extern struct dirent *ReadDir(DIR *dir, const char *dirname);
 extern struct dirent *ReadDirExtended(DIR *dir, const char *dirname,
 									  int elevel);
