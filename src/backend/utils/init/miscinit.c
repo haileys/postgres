@@ -382,7 +382,7 @@ checkDataDir(void)
 #endif
 
 	/* Check for PG_VERSION */
-	ValidatePgVersion(DataDir);
+	ValidatePgVersion();
 }
 
 /*
@@ -1523,15 +1523,15 @@ RecheckDataDirLockFile(void)
  */
 
 /*
- * Determine whether the PG_VERSION file in directory `path' indicates
+ * Determine whether the PG_VERSION file in DataDir indicates
  * a data version compatible with the version of this program.
  *
  * If compatible, return. Otherwise, ereport(FATAL).
  */
 void
-ValidatePgVersion(const char *path)
+ValidatePgVersion(void)
 {
-	char		full_path[MAXPGPATH];
+	const char *rel_path = "PG_VERSION";
 	FILE	   *file;
 	int			ret;
 	long		file_major;
@@ -1542,21 +1542,19 @@ ValidatePgVersion(const char *path)
 
 	my_major = strtol(my_version_string, &endptr, 10);
 
-	snprintf(full_path, sizeof(full_path), "%s/PG_VERSION", path);
-
-	file = AllocateFile(full_path, "r");
+	file = AllocateFile(rel_path, "r");
 	if (!file)
 	{
 		if (errno == ENOENT)
 			ereport(FATAL,
 					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
 					 errmsg("\"%s\" is not a valid data directory",
-							path),
-					 errdetail("File \"%s\" is missing.", full_path)));
+							DataDir),
+					 errdetail("File \"%s\" is missing.", rel_path)));
 		else
 			ereport(FATAL,
 					(errcode_for_file_access(),
-					 errmsg("could not open file \"%s\": %m", full_path)));
+					 errmsg("could not open file \"%s\": %m", rel_path)));
 	}
 
 	file_version_string[0] = '\0';
@@ -1567,9 +1565,9 @@ ValidatePgVersion(const char *path)
 		ereport(FATAL,
 				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
 				 errmsg("\"%s\" is not a valid data directory",
-						path),
+						DataDir),
 				 errdetail("File \"%s\" does not contain valid data.",
-						   full_path),
+						   rel_path),
 				 errhint("You might need to initdb.")));
 
 	FreeFile(file);

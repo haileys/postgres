@@ -1068,7 +1068,7 @@ InitPostgres(const char *in_dbname, Oid dboid,
 								fullpath)));
 		}
 
-		ValidatePgVersion(fullpath);
+		ValidatePgVersion();
 	}
 
 	SetDatabasePath(fullpath);
