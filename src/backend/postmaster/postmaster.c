@@ -497,11 +497,10 @@ HANDLE		PostmasterHandle;
  * Postmaster main entry point
  */
 void
-PostmasterMain(int argc, char *argv[])
+PostmasterStart(const char *userDoption)
 {
 	int			opt;
 	int			status;
-	char	   *userDoption = NULL;
 	bool		listen_addr_saved = false;
 	int			i;
 	char	   *output_config_variable = NULL;
@@ -539,9 +538,6 @@ PostmasterMain(int argc, char *argv[])
 											  "Postmaster",
 											  ALLOCSET_DEFAULT_SIZES);
 	MemoryContextSwitchTo(PostmasterContext);
-
-	/* Initialize paths to installation files */
-	getInstallationPaths(argv[0]);
 
 	/*
 	 * Set up signal handlers for the postmaster process.
