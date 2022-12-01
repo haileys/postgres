@@ -418,7 +418,6 @@ static void TerminateChildren(int signal);
 static int	CountChildren(int target);
 static bool assign_backendlist_entry(RegisteredBgWorker *rw);
 static void maybe_start_bgworkers(void);
-static bool CreateOptsFile(int argc, char *argv[], char *fullprogname);
 static pid_t StartChildProcess(AuxProcType type);
 static void StartAutovacuumWorker(void);
 static void MaybeStartWalReceiver(void);
@@ -1110,13 +1109,6 @@ PostmasterStart(const char *userDoption)
 			(errmsg("starting %s", PG_VERSION_STR)));
 
 	on_proc_exit(CloseServerPorts, 0);
-
-	/*
-	 * Record postmaster options.  We delay this till now to avoid recording
-	 * bogus options (eg, unusable port number).
-	 */
-	if (!CreateOptsFile(argc, argv, my_exec_path))
-		ExitPostmaster(1);
 
 	/*
 	 * Write the external PID file if requested
@@ -5256,42 +5248,6 @@ MaybeStartWalReceiver(void)
 			WalReceiverRequested = false;
 		/* else leave the flag set, so we'll try again later */
 	}
-}
-
-
-/*
- * Create the opts file
- */
-static bool
-CreateOptsFile(int argc, char *argv[], char *fullprogname)
-{
-	FILE	   *fp;
-	int			i;
-
-#define OPTS_FILE	"postmaster.opts"
-
-	if ((fp = fopen(OPTS_FILE, "w")) == NULL)
-	{
-		ereport(LOG,
-				(errcode_for_file_access(),
-				 errmsg("could not create file \"%s\": %m", OPTS_FILE)));
-		return false;
-	}
-
-	fprintf(fp, "%s", fullprogname);
-	for (i = 1; i < argc; i++)
-		fprintf(fp, " \"%s\"", argv[i]);
-	fputs("\n", fp);
-
-	if (fclose(fp))
-	{
-		ereport(LOG,
-				(errcode_for_file_access(),
-				 errmsg("could not write file \"%s\": %m", OPTS_FILE)));
-		return false;
-	}
-
-	return true;
 }
 
 
