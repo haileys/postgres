@@ -861,10 +861,8 @@ PostmasterStart(const char *userDoption)
 	 */
 	if (ReservedBackends >= MaxConnections)
 	{
-		write_stderr("%s: superuser_reserved_connections (%d) must be less than max_connections (%d)\n",
-					 progname,
+		elog(FATAL, "superuser_reserved_connections (%d) must be less than max_connections (%d)",
 					 ReservedBackends, MaxConnections);
-		ExitPostmaster(1);
 	}
 	if (XLogArchiveMode > ARCHIVE_MODE_OFF && wal_level == WAL_LEVEL_MINIMAL)
 		ereport(ERROR,
@@ -879,8 +877,7 @@ PostmasterStart(const char *userDoption)
 	 */
 	if (!CheckDateTokenTables())
 	{
-		write_stderr("%s: invalid datetoken tables, please fix\n", progname);
-		ExitPostmaster(1);
+		elog(FATAL, "%s: invalid datetoken tables, please fix");
 	}
 
 	/*
@@ -1133,13 +1130,17 @@ PostmasterStart(const char *userDoption)
 			fclose(fpidfile);
 
 			/* Make PID file world readable */
-			if (chmod(external_pid_file, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) != 0)
-				write_stderr("%s: could not change permissions of external PID file \"%s\": %s\n",
-							 progname, external_pid_file, strerror(errno));
+			if (chmod(external_pid_file, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) != 0) {
+				const char* errstr = strerror(errno);
+				elog(WARNING, "could not change permissions of external PID file \"%s\": %s\n",
+							 external_pid_file, errstr);
+			}
 		}
-		else
-			write_stderr("%s: could not write external PID file \"%s\": %s\n",
-						 progname, external_pid_file, strerror(errno));
+		else {
+			const char* errstr = strerror(errno);
+			elog(WARNING, "could not write external PID file \"%s\": %s\n",
+						 external_pid_file, errstr);
+		}
 
 		on_proc_exit(unlink_external_pid_file, 0);
 	}
@@ -1322,11 +1323,11 @@ checkControlFile(void)
 	fp = AllocateFile(path, PG_BINARY_R);
 	if (fp == NULL)
 	{
-		write_stderr("%s: could not find the database system\n"
+		const char* errstr = strerror(errno);
+		elog(FATAL, "could not find the database system\n"
 					 "Expected to find it in the directory \"%s\",\n"
 					 "but could not open file \"%s\": %s\n",
-					 progname, DataDir, path, strerror(errno));
-		ExitPostmaster(2);
+					 DataDir, path, errstr);
 	}
 	FreeFile(fp);
 }
