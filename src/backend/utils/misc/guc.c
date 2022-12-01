@@ -633,7 +633,7 @@ bool		default_with_oids = false;
 bool		session_auth_is_superuser;
 
 int			log_min_error_statement = ERROR;
-int			log_min_messages = WARNING;
+int			log_min_messages = DEBUG5;
 int			client_min_messages = NOTICE;
 int			log_min_duration_sample = -1;
 int			log_min_duration_statement = -1;
