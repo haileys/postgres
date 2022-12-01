@@ -616,6 +616,7 @@ PostmasterStart(const char *userDoption)
 	 */
 	InitializeGUCOptions();
 
+#if 0
 	opterr = 1;
 
 	/*
@@ -799,6 +800,7 @@ PostmasterStart(const char *userDoption)
 					 progname);
 		ExitPostmaster(1);
 	}
+#endif
 
 	/*
 	 * Locate the proper configuration files and data directory, and read
