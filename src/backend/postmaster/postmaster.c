@@ -806,7 +806,7 @@ PostmasterStart(const char *userDoption)
 	 * Locate the proper configuration files and data directory, and read
 	 * postgresql.conf for the first time.
 	 */
-	if (!SelectConfigFiles(userDoption, progname))
+	if (!SelectConfigFiles(userDoption, "pglite"))
 		ExitPostmaster(2);
 
 	if (output_config_variable != NULL)
@@ -897,8 +897,7 @@ PostmasterStart(const char *userDoption)
 		char	  **p;
 
 		ereport(DEBUG3,
-				(errmsg_internal("%s: PostmasterMain: initial environment dump:",
-								 progname)));
+				(errmsg_internal("PostmasterMain: initial environment dump:")));
 		ereport(DEBUG3,
 				(errmsg_internal("-----------------------------------------")));
 		for (p = environ; *p; ++p)
