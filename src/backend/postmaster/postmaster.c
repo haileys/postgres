@@ -1308,10 +1308,8 @@ getInstallationPaths(const char *argv0)
 static void
 checkControlFile(void)
 {
-	char		path[MAXPGPATH];
+	const char *path = "global/pg_control";
 	FILE	   *fp;
-
-	snprintf(path, sizeof(path), "%s/global/pg_control", DataDir);
 
 	fp = AllocateFile(path, PG_BINARY_R);
 	if (fp == NULL)
