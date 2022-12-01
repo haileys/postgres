@@ -275,7 +275,6 @@ static int
 ParseTzFile(const char *filename, int depth,
 			tzEntry **base, int *arraysize, int n)
 {
-	char		share_path[MAXPGPATH];
 	char		file_path[MAXPGPATH];
 	FILE	   *tzFile;
 	char		tzbuf[1024];
@@ -315,42 +314,13 @@ ParseTzFile(const char *filename, int depth,
 		return -1;
 	}
 
-	get_share_path(my_exec_path, share_path);
-	snprintf(file_path, sizeof(file_path), "%s/timezonesets/%s",
-			 share_path, filename);
+	snprintf(file_path, sizeof(file_path), "timezonesets/%s", filename);
 	tzFile = AllocateFile(file_path, "r");
 	if (!tzFile)
 	{
-		/*
-		 * Check to see if the problem is not the filename but the directory.
-		 * This is worth troubling over because if the installation share/
-		 * directory is missing or unreadable, this is likely to be the first
-		 * place we notice a problem during postmaster startup.
-		 */
-		int			save_errno = errno;
-		DIR		   *tzdir;
-
-		snprintf(file_path, sizeof(file_path), "%s/timezonesets",
-				 share_path);
-		tzdir = AllocateDir(file_path);
-		if (tzdir == NULL)
-		{
-			GUC_check_errmsg("could not open directory \"%s\": %m",
-							 file_path);
-			GUC_check_errhint("This may indicate an incomplete PostgreSQL installation, or that the file \"%s\" has been moved away from its proper location.",
-							  my_exec_path);
-			return -1;
-		}
-		FreeDir(tzdir);
-		errno = save_errno;
-
-		/*
-		 * otherwise, if file doesn't exist and it's level 0, guc.c's
-		 * complaint is enough
-		 */
-		if (errno != ENOENT || depth > 0)
-			GUC_check_errmsg("could not read time zone file \"%s\": %m",
-							 filename);
+		GUC_check_errmsg("could not read time zone file \"%s\": %m",
+						 filename);
+		GUC_check_errhint("In pglite the timezonesets directory lives under the datadir. Make sure it exists.");
 
 		return -1;
 	}
