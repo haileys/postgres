@@ -438,6 +438,8 @@ typedef enum
 	NUM_AUXPROCTYPES			/* Must be last! */
 } AuxProcType;
 
+pid_t pglite_start_aux_proc(AuxProcType proc_type);
+
 extern PGDLLIMPORT AuxProcType MyAuxProcType;
 
 #define AmStartupProcess()			(MyAuxProcType == StartupProcess)

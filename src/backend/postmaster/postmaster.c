@@ -5038,47 +5038,7 @@ CountChildren(int target)
 static pid_t
 StartChildProcess(AuxProcType type)
 {
-	pid_t		pid;
-
-#ifdef EXEC_BACKEND
-	{
-		char	   *av[10];
-		int			ac = 0;
-		char		typebuf[32];
-
-		/*
-		 * Set up command-line arguments for subprocess
-		 */
-		av[ac++] = "postgres";
-		av[ac++] = "--forkaux";
-		av[ac++] = NULL;		/* filled in by postmaster_forkexec */
-
-		snprintf(typebuf, sizeof(typebuf), "%d", type);
-		av[ac++] = typebuf;
-
-		av[ac] = NULL;
-		Assert(ac < lengthof(av));
-
-		pid = postmaster_forkexec(ac, av);
-	}
-#else							/* !EXEC_BACKEND */
-	pid = fork_process();
-
-	if (pid == 0)				/* child */
-	{
-		InitPostmasterChild();
-
-		/* Close the postmaster's sockets */
-		ClosePostmasterPorts(false);
-
-		/* Release postmaster's working memory context */
-		MemoryContextSwitchTo(TopMemoryContext);
-		MemoryContextDelete(PostmasterContext);
-		PostmasterContext = NULL;
-
-		AuxiliaryProcessMain(type); /* does not return */
-	}
-#endif							/* EXEC_BACKEND */
+	pid_t pid = pglite_start_aux_proc(type);
 
 	if (pid < 0)
 	{
