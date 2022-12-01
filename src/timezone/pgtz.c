@@ -155,7 +155,7 @@ scan_directory_ci(const char *dirname, const char *fname, int fnamelen,
 	DIR		   *dirdesc;
 	struct dirent *direntry;
 
-	dirdesc = AllocateDir(dirname);
+	dirdesc = AllocateDirRaw(dirname);
 
 	while ((direntry = ReadDirExtended(dirdesc, dirname, LOG)) != NULL)
 	{
@@ -402,7 +402,7 @@ pg_tzenumerate_start(void)
 	ret->baselen = strlen(startdir) + 1;
 	ret->depth = 0;
 	ret->dirname[0] = startdir;
-	ret->dirdesc[0] = AllocateDir(startdir);
+	ret->dirdesc[0] = AllocateDirRaw(startdir);
 	if (!ret->dirdesc[0])
 		ereport(ERROR,
 				(errcode_for_file_access(),
@@ -460,7 +460,7 @@ pg_tzenumerate_next(pg_tzenum *dir)
 						(errmsg_internal("timezone directory stack overflow")));
 			dir->depth++;
 			dir->dirname[dir->depth] = pstrdup(fullname);
-			dir->dirdesc[dir->depth] = AllocateDir(fullname);
+			dir->dirdesc[dir->depth] = AllocateDirRaw(fullname);
 			if (!dir->dirdesc[dir->depth])
 				ereport(ERROR,
 						(errcode_for_file_access(),
