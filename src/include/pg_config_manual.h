@@ -398,3 +398,6 @@
  * Enable tracing of syncscan operations (see also the trace_syncscan GUC var).
  */
 /* #define TRACE_SYNCSCAN */
+
+/* pglite: Use system timezone database for now - TODO will need to fix when supporting windows */
+#define SYSTEMTZDIR "/usr/share/zoneinfo"
