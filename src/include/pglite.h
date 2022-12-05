@@ -31,5 +31,6 @@ void pglite_tls_init_utils_misc_guc(void);
 
 // supplementary headers:
 #include "pglite/fs.h"
+#include "pglite/signal.h"
 
 #endif
