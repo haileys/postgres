@@ -1216,15 +1216,6 @@ PostmasterStart(const char *userDoption)
 
 	/* Some workers may be scheduled to start now */
 	maybe_start_bgworkers();
-
-	status = ServerLoop();
-
-	/*
-	 * ServerLoop probably shouldn't ever return, but if it does, close down.
-	 */
-	ExitPostmaster(status != STATUS_OK);
-
-	pglite_abort();					/* not reached */
 }
 
 
