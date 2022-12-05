@@ -912,7 +912,7 @@ ProcKill(int code, Datum arg)
 
 	/* wake autovac launcher if needed -- see comments in FreeWorkerInfo */
 	if (AutovacuumLauncherPid != 0)
-		kill(AutovacuumLauncherPid, SIGUSR2);
+		pglite_kill(AutovacuumLauncherPid, SIGUSR2);
 }
 
 /*
@@ -1413,7 +1413,7 @@ ProcSleep(LOCALLOCK *locallock, LockMethod lockMethodTable)
 				}
 
 				/* send the autovacuum worker Back to Old Kent Road */
-				if (kill(pid, SIGINT) < 0)
+				if (pglite_kill(pid, SIGINT) < 0)
 				{
 					/*
 					 * There's a race condition here: once we release the

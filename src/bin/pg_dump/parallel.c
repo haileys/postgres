@@ -417,7 +417,7 @@ ShutdownWorkersHard(ParallelState *pstate)
 		pid_t		pid = pstate->parallelSlot[i].pid;
 
 		if (pid != 0)
-			kill(pid, SIGTERM);
+			pglite_kill(pid, SIGTERM);
 	}
 #else
 
@@ -571,7 +571,7 @@ sigTermHandler(SIGNAL_ARGS)
 			pid_t		pid = signal_info.pstate->parallelSlot[i].pid;
 
 			if (pid != 0)
-				kill(pid, SIGTERM);
+				pglite_kill(pid, SIGTERM);
 		}
 	}
 

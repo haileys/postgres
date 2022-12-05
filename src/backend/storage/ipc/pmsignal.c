@@ -186,7 +186,7 @@ SendPostmasterSignal(PMSignalReason reason)
 	/* Atomically set the proper flag */
 	PMSignalState->PMSignalFlags[reason] = true;
 	/* Send signal to postmaster */
-	kill(PostmasterPid, SIGUSR1);
+	pglite_kill(PostmasterPid, SIGUSR1);
 }
 
 /*

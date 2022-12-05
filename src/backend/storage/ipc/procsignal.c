@@ -279,7 +279,7 @@ SendProcSignal(pid_t pid, ProcSignalReason reason, BackendId backendId)
 			/* Atomically set the proper flag */
 			slot->pss_signalFlags[reason] = true;
 			/* Send signal */
-			return kill(pid, SIGUSR1);
+			return pglite_kill(pid, SIGUSR1);
 		}
 	}
 	else
@@ -303,7 +303,7 @@ SendProcSignal(pid_t pid, ProcSignalReason reason, BackendId backendId)
 				/* Atomically set the proper flag */
 				slot->pss_signalFlags[reason] = true;
 				/* Send signal */
-				return kill(pid, SIGUSR1);
+				return pglite_kill(pid, SIGUSR1);
 			}
 		}
 	}
@@ -377,7 +377,7 @@ EmitProcSignalBarrier(ProcSignalBarrierType type)
 		{
 			/* see SendProcSignal for details */
 			slot->pss_signalFlags[PROCSIG_BARRIER] = true;
-			kill(pid, SIGUSR1);
+			pglite_kill(pid, SIGUSR1);
 		}
 	}
 

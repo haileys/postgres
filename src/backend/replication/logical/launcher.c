@@ -496,7 +496,7 @@ logicalrep_worker_stop(Oid subid, Oid relid)
 	}
 
 	/* Now terminate the worker ... */
-	kill(worker->proc->pid, SIGTERM);
+	pglite_kill(worker->proc->pid, SIGTERM);
 
 	/* ... and wait for it to die. */
 	for (;;)
@@ -791,7 +791,7 @@ static void
 ApplyLauncherWakeup(void)
 {
 	if (LogicalRepCtx->launcher_pid != 0)
-		kill(LogicalRepCtx->launcher_pid, SIGUSR1);
+		pglite_kill(LogicalRepCtx->launcher_pid, SIGUSR1);
 }
 
 /*

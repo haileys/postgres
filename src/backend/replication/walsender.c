@@ -3219,7 +3219,7 @@ HandleWalSndInitStopping(void)
 	 * standby, and then exit gracefully.
 	 */
 	if (!replication_active)
-		kill(MyProcPid, SIGTERM);
+		pglite_kill(MyProcPid, SIGTERM);
 	else
 		got_STOPPING = true;
 }

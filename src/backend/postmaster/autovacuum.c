@@ -1675,7 +1675,7 @@ AutoVacWorkerMain(int argc, char *argv[])
 
 		/* wake up the launcher */
 		if (AutoVacuumShmem->av_launcherpid != 0)
-			kill(AutoVacuumShmem->av_launcherpid, SIGUSR2);
+			pglite_kill(AutoVacuumShmem->av_launcherpid, SIGUSR2);
 	}
 	else
 	{

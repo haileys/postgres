@@ -289,7 +289,7 @@ BackgroundWorkerStateChange(bool allow_new_workers)
 			{
 				rw->rw_terminate = true;
 				if (rw->rw_pid != 0)
-					kill(rw->rw_pid, SIGTERM);
+					pglite_kill(rw->rw_pid, SIGTERM);
 				else
 				{
 					/* Report never-started, now-terminated worker as dead. */
@@ -333,7 +333,7 @@ BackgroundWorkerStateChange(bool allow_new_workers)
 			slot->in_use = false;
 
 			if (notify_pid != 0)
-				kill(notify_pid, SIGUSR1);
+				pglite_kill(notify_pid, SIGUSR1);
 
 			continue;
 		}
@@ -467,7 +467,7 @@ ReportBackgroundWorkerPID(RegisteredBgWorker *rw)
 	slot->pid = rw->rw_pid;
 
 	if (rw->rw_worker.bgw_notify_pid != 0)
-		kill(rw->rw_worker.bgw_notify_pid, SIGUSR1);
+		pglite_kill(rw->rw_worker.bgw_notify_pid, SIGUSR1);
 }
 
 /*
@@ -502,7 +502,7 @@ ReportBackgroundWorkerExit(slist_mutable_iter *cur)
 		ForgetBackgroundWorker(cur);
 
 	if (notify_pid != 0)
-		kill(notify_pid, SIGUSR1);
+		pglite_kill(notify_pid, SIGUSR1);
 }
 
 /*
@@ -560,7 +560,7 @@ ForgetUnstartedBackgroundWorkers(void)
 
 			ForgetBackgroundWorker(&iter);
 			if (notify_pid != 0)
-				kill(notify_pid, SIGUSR1);
+				pglite_kill(notify_pid, SIGUSR1);
 		}
 	}
 }

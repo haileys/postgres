@@ -667,7 +667,7 @@ wait_pid(PG_FUNCTION_ARGS)
 	if (!superuser())
 		elog(ERROR, "must be superuser to check PID liveness");
 
-	while (kill(pid, 0) == 0)
+	while (pglite_kill(pid, 0) == 0)
 	{
 		CHECK_FOR_INTERRUPTS();
 		pg_usleep(50000);

@@ -94,9 +94,9 @@ pg_signal_backend(int pid, int sig)
 
 	/* If we have setsid(), signal the backend's whole process group */
 #ifdef HAVE_SETSID
-	if (kill(-pid, sig))
+	if (pglite_kill(-pid, sig))
 #else
-	if (kill(pid, sig))
+	if (pglite_kill(pid, sig))
 #endif
 	{
 		/* Again, just a warning to allow loops */
@@ -160,7 +160,7 @@ pg_wait_until_termination(int pid, int64 timeout)
 		if (remainingtime < waittime)
 			waittime = remainingtime;
 
-		if (kill(pid, 0) == -1)
+		if (pglite_kill(pid, 0) == -1)
 		{
 			if (errno == ESRCH)
 				return true;
@@ -246,7 +246,7 @@ pg_terminate_backend(PG_FUNCTION_ARGS)
 Datum
 pg_reload_conf(PG_FUNCTION_ARGS)
 {
-	if (kill(PostmasterPid, SIGHUP))
+	if (pglite_kill(PostmasterPid, SIGHUP))
 	{
 		ereport(WARNING,
 				(errmsg("failed to send signal to postmaster: %m")));

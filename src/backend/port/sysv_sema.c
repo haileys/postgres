@@ -241,7 +241,7 @@ IpcSemaphoreCreate(int numSems)
 			continue;			/* oops, GETPID failed */
 		if (creatorPID != getpid())
 		{
-			if (kill(creatorPID, 0) == 0 || errno != ESRCH)
+			if (pglite_kill(creatorPID, 0) == 0 || errno != ESRCH)
 				continue;		/* sema belongs to a live process */
 		}
 

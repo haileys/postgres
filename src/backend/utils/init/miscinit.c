@@ -1113,7 +1113,7 @@ CreateLockFile(const char *filename, bool amPostmaster,
 		if (other_pid != my_pid && other_pid != my_p_pid &&
 			other_pid != my_gp_pid)
 		{
-			if (kill(other_pid, 0) == 0 ||
+			if (pglite_kill(other_pid, 0) == 0 ||
 				(errno != ESRCH && errno != EPERM))
 			{
 				/* lockfile belongs to a live process */

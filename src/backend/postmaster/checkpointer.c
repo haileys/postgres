@@ -993,7 +993,7 @@ RequestCheckpoint(int flags)
 				break;
 			}
 		}
-		else if (kill(CheckpointerShmem->checkpointer_pid, SIGINT) != 0)
+		else if (pglite_kill(CheckpointerShmem->checkpointer_pid, SIGINT) != 0)
 		{
 			if (ntries >= MAX_SIGNAL_TRIES || !(flags & CHECKPOINT_WAIT))
 			{

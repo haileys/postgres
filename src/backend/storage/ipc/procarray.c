@@ -3758,7 +3758,7 @@ CountOtherDBBackends(Oid databaseId, int *nbackends, int *nprepared)
 		 * block kill() inside the kernel...
 		 */
 		for (index = 0; index < nautovacs; index++)
-			(void) kill(autovac_pids[index], SIGTERM);	/* ignore any error */
+			(void) pglite_kill(autovac_pids[index], SIGTERM);	/* ignore any error */
 
 		/* sleep, then try again */
 		pg_usleep(100 * 1000L); /* 100ms */
@@ -3870,9 +3870,9 @@ TerminateOtherDBBackends(Oid databaseId)
 				 * group
 				 */
 #ifdef HAVE_SETSID
-				(void) kill(-pid, SIGTERM);
+				(void) pglite_kill(-pid, SIGTERM);
 #else
-				(void) kill(pid, SIGTERM);
+				(void) pglite_kill(pid, SIGTERM);
 #endif
 			}
 		}

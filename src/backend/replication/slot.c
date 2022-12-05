@@ -1323,7 +1323,7 @@ InvalidatePossiblyObsoleteSlot(ReplicationSlot *s, XLogRecPtr oldestLSN,
 						(errmsg("terminating process %d to release replication slot \"%s\"",
 								active_pid, NameStr(slotname))));
 
-				(void) kill(active_pid, SIGTERM);
+				(void) pglite_kill(active_pid, SIGTERM);
 				last_signaled_pid = active_pid;
 			}
 

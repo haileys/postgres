@@ -1276,9 +1276,9 @@ StatementTimeoutHandler(void)
 
 #ifdef HAVE_SETSID
 	/* try to signal whole process group */
-	kill(-MyProcPid, sig);
+	pglite_kill(-MyProcPid, sig);
 #endif
-	kill(MyProcPid, sig);
+	pglite_kill(MyProcPid, sig);
 }
 
 /*
@@ -1289,9 +1289,9 @@ LockTimeoutHandler(void)
 {
 #ifdef HAVE_SETSID
 	/* try to signal whole process group */
-	kill(-MyProcPid, SIGINT);
+	pglite_kill(-MyProcPid, SIGINT);
 #endif
-	kill(MyProcPid, SIGINT);
+	pglite_kill(MyProcPid, SIGINT);
 }
 
 static void

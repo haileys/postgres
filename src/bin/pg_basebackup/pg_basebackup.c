@@ -303,7 +303,7 @@ static void
 kill_bgchild_atexit(void)
 {
 	if (bgchild > 0 && !bgchild_exited)
-		kill(bgchild, SIGTERM);
+		pglite_kill(bgchild, SIGTERM);
 }
 #endif
 

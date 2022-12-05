@@ -647,11 +647,11 @@ SetLatch(Latch *latch)
 			sendSelfPipeByte();
 #else
 		if (waiting)
-			kill(MyProcPid, SIGURG);
+			pglite_kill(MyProcPid, SIGURG);
 #endif
 	}
 	else
-		kill(owner_pid, SIGURG);
+		pglite_kill(owner_pid, SIGURG);
 
 #else
 

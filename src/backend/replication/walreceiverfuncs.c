@@ -216,7 +216,7 @@ ShutdownWalRcv(void)
 	 * Signal walreceiver process if it was still running.
 	 */
 	if (walrcvpid != 0)
-		kill(walrcvpid, SIGTERM);
+		pglite_kill(walrcvpid, SIGTERM);
 
 	/*
 	 * Wait for walreceiver to acknowledge its death by setting state to

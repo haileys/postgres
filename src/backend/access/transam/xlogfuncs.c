@@ -601,7 +601,7 @@ pg_promote(PG_FUNCTION_ARGS)
 						PROMOTE_SIGNAL_FILE)));
 
 	/* signal the postmaster */
-	if (kill(PostmasterPid, SIGUSR1) != 0)
+	if (pglite_kill(PostmasterPid, SIGUSR1) != 0)
 	{
 		ereport(WARNING,
 				(errmsg("failed to send signal to postmaster: %m")));

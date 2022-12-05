@@ -1537,7 +1537,7 @@ ServerLoop(void)
 		{
 			avlauncher_needs_signal = false;
 			if (AutoVacPID != 0)
-				kill(AutoVacPID, SIGUSR2);
+				pglite_kill(AutoVacPID, SIGUSR2);
 		}
 
 		/* If we need to start a WAL receiver, try to do that now */
@@ -1603,7 +1603,7 @@ ServerLoop(void)
 			{
 				ereport(LOG,
 						(errmsg("performing immediate shutdown because data directory lock file is invalid")));
-				kill(MyProcPid, SIGQUIT);
+				pglite_kill(MyProcPid, SIGQUIT);
 			}
 			last_lockfile_recheck_time = now;
 		}
@@ -3694,8 +3694,8 @@ PostmasterStateMachine(void)
 static void
 signal_child(pid_t pid, int signal)
 {
-	if (kill(pid, signal) < 0)
-		elog(DEBUG3, "kill(%ld,%d) failed: %m", (long) pid, signal);
+	if (pglite_kill(pid, signal) < 0)
+		elog(DEBUG3, "pglite_kill(%ld,%d) failed: %m", (long) pid, signal);
 #ifdef HAVE_SETSID
 	switch (signal)
 	{
@@ -3704,8 +3704,8 @@ signal_child(pid_t pid, int signal)
 		case SIGQUIT:
 		case SIGSTOP:
 		case SIGKILL:
-			if (kill(-pid, signal) < 0)
-				elog(DEBUG3, "kill(%ld,%d) failed: %m", (long) (-pid), signal);
+			if (pglite_kill(-pid, signal) < 0)
+				elog(DEBUG3, "pglite_kill(%ld,%d) failed: %m", (long) (-pid), signal);
 			break;
 		default:
 			break;
@@ -5569,7 +5569,7 @@ maybe_start_bgworkers(void)
 
 				/* Report worker is gone now. */
 				if (notify_pid != 0)
-					kill(notify_pid, SIGUSR1);
+					pglite_kill(notify_pid, SIGUSR1);
 
 				continue;
 			}

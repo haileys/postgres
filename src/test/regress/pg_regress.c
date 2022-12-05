@@ -2440,7 +2440,7 @@ regression_main(int argc, char *argv[],
 			 * attempts.
 			 */
 #ifndef WIN32
-			if (kill(postmaster_pid, SIGKILL) != 0 &&
+			if (pglite_kill(postmaster_pid, SIGKILL) != 0 &&
 				errno != ESRCH)
 				fprintf(stderr, _("\n%s: could not kill failed postmaster: %s\n"),
 						progname, strerror(errno));

@@ -724,7 +724,7 @@ wait_for_postmaster_stop(void)
 		if ((pid = get_pgpid(false)) == 0)
 			return true;		/* pid file is gone */
 
-		if (kill((pid_t) pid, 0) != 0)
+		if (pglite_kill((pid_t) pid, 0) != 0)
 		{
 			/*
 			 * Postmaster seems to have died.  Check the pid file once more to
@@ -761,7 +761,7 @@ wait_for_postmaster_promote(void)
 
 		if ((pid = get_pgpid(false)) == 0)
 			return false;		/* pid file is gone */
-		if (kill((pid_t) pid, 0) != 0)
+		if (pglite_kill((pid_t) pid, 0) != 0)
 			return false;		/* postmaster died */
 
 		state = get_control_dbstate();
@@ -857,7 +857,7 @@ trap_sigint_during_startup(int sig)
 {
 	if (postmasterPID != -1)
 	{
-		if (kill(postmasterPID, SIGINT) != 0)
+		if (pglite_kill(postmasterPID, SIGINT) != 0)
 			write_stderr(_("%s: could not send stop signal (PID: %ld): %s\n"),
 						 progname, (pgpid_t) postmasterPID, strerror(errno));
 	}
@@ -1039,7 +1039,7 @@ do_stop(void)
 		exit(1);
 	}
 
-	if (kill((pid_t) pid, sig) != 0)
+	if (pglite_kill((pid_t) pid, sig) != 0)
 	{
 		write_stderr(_("%s: could not send stop signal (PID: %ld): %s\n"), progname, pid,
 					 strerror(errno));
@@ -1107,7 +1107,7 @@ do_restart(void)
 
 	if (postmaster_is_alive((pid_t) pid))
 	{
-		if (kill((pid_t) pid, sig) != 0)
+		if (pglite_kill((pid_t) pid, sig) != 0)
 		{
 			write_stderr(_("%s: could not send stop signal (PID: %ld): %s\n"), progname, pid,
 						 strerror(errno));
@@ -1163,7 +1163,7 @@ do_reload(void)
 		exit(1);
 	}
 
-	if (kill((pid_t) pid, sig) != 0)
+	if (pglite_kill((pid_t) pid, sig) != 0)
 	{
 		write_stderr(_("%s: could not send reload signal (PID: %ld): %s\n"),
 					 progname, pid, strerror(errno));
@@ -1225,7 +1225,7 @@ do_promote(void)
 	}
 
 	sig = SIGUSR1;
-	if (kill((pid_t) pid, sig) != 0)
+	if (pglite_kill((pid_t) pid, sig) != 0)
 	{
 		write_stderr(_("%s: could not send promote signal (PID: %ld): %s\n"),
 					 progname, pid, strerror(errno));
@@ -1298,7 +1298,7 @@ do_logrotate(void)
 	}
 
 	sig = SIGUSR1;
-	if (kill((pid_t) pid, sig) != 0)
+	if (pglite_kill((pid_t) pid, sig) != 0)
 	{
 		write_stderr(_("%s: could not send log rotation signal (PID: %ld): %s\n"),
 					 progname, pid, strerror(errno));
@@ -1335,7 +1335,7 @@ postmaster_is_alive(pid_t pid)
 	if (pid == getppid())
 		return false;
 #endif
-	if (kill(pid, 0) == 0)
+	if (pglite_kill(pid, 0) == 0)
 		return true;
 	return false;
 }
@@ -1400,7 +1400,7 @@ do_status(void)
 static void
 do_kill(pgpid_t pid)
 {
-	if (kill((pid_t) pid, sig) != 0)
+	if (pglite_kill((pid_t) pid, sig) != 0)
 	{
 		write_stderr(_("%s: could not send signal %d (PID: %ld): %s\n"),
 					 progname, sig, pid, strerror(errno));
@@ -1606,7 +1606,7 @@ pgwin32_ServiceHandler(DWORD request)
 		case SERVICE_CONTROL_PAUSE:
 			/* Win32 config reloading */
 			status.dwWaitHint = 5000;
-			kill(postmasterPID, SIGHUP);
+			pglite_kill(postmasterPID, SIGHUP);
 			return;
 
 			/* FIXME: These could be used to replace other signals etc */
@@ -1682,7 +1682,7 @@ pgwin32_ServiceMain(DWORD argc, LPTSTR *argv)
 				 */
 				int			maxShutdownCheckPoint = status.dwCheckPoint + 12;
 
-				kill(postmasterPID, SIGINT);
+				pglite_kill(postmasterPID, SIGINT);
 
 				/*
 				 * Increment the checkpoint and try again. Abort after 12
