@@ -861,35 +861,9 @@ PGSharedMemoryCreate(Size size,
 void
 PGSharedMemoryReAttach(void)
 {
-	IpcMemoryId shmid;
-	PGShmemHeader *hdr;
-	IpcMemoryState state;
-	void	   *origUsedShmemSegAddr = UsedShmemSegAddr;
-
-	Assert(UsedShmemSegAddr != NULL);
-	Assert(IsUnderPostmaster);
-
-#ifdef __CYGWIN__
-	/* cygipc (currently) appears to not detach on exec. */
-	PGSharedMemoryDetach();
-	UsedShmemSegAddr = origUsedShmemSegAddr;
-#endif
-
-	elog(DEBUG3, "attaching to %p", UsedShmemSegAddr);
-	shmid = shmget(UsedShmemSegID, sizeof(PGShmemHeader), 0);
-	if (shmid < 0)
-		state = SHMSTATE_FOREIGN;
-	else
-		state = PGSharedMemoryAttach(shmid, UsedShmemSegAddr, &hdr);
-	if (state != SHMSTATE_ATTACHED)
-		elog(FATAL, "could not reattach to shared memory (key=%d, addr=%p): %m",
-			 (int) UsedShmemSegID, UsedShmemSegAddr);
-	if (hdr != origUsedShmemSegAddr)
-		elog(FATAL, "reattaching to shared memory returned unexpected address (got %p, expected %p)",
-			 hdr, origUsedShmemSegAddr);
-	dsm_set_control_handle(hdr->dsm_control);
-
-	UsedShmemSegAddr = hdr;		/* probably redundant */
+	// we don't need to do anything special because all pg threads run in the
+	// same address space in pglite. TODO when we support multiproc we'll need
+	// to do something special
 }
 
 /*
