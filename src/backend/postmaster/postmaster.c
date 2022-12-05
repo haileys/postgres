@@ -5752,6 +5752,14 @@ save_backend_variables(BackendParameters *param, Port *port,
 	return true;
 }
 
+void
+pglite_save_backend_variables(BackendParameters *param, Port *port)
+{
+	if (!save_backend_variables(param, port)) {
+		elog(PANIC, "save_backend_variables failed");
+	}
+}
+
 
 #ifdef WIN32
 /*
